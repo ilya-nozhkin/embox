@@ -12,25 +12,29 @@
 
 #include <stdint.h>
 
-typedef volatile unsigned long __gpio_mask_t;
+typedef volatile uint8_t __gpio_mask_t;
 
-typedef volatile unsigned int esp8266_reg_t;
+typedef volatile uint8_t esp8266_reg_t;
 
 struct gpio {
-	uint8_t sleep_oe : 1;
-	uint8_t sleep_sel : 1;
-	uint8_t rsvd1 : 1;
-	uint8_t sleep_pullup : 1;
-	uint8_t function_select10 : 2;
-	uint8_t rsvd2 : 1;
-	uint8_t pullup : 1;
-	uint8_t function_select2 : 1;
+	esp8266_reg_t sleep_oe : 1;
+	esp8266_reg_t sleep_sel : 1;
+	esp8266_reg_t rsvd1 : 1;
+	esp8266_reg_t sleep_pullup : 1;
+	esp8266_reg_t function_select10 : 2;
+	esp8266_reg_t rsvd2 : 1;
+	esp8266_reg_t pullup : 1;
+	esp8266_reg_t function_select2 : 1;
 } __attribute__ ((packed));
 
 #define GPIO_MODE_SPEC_SECTION 0x00FF0000
 #define GPIO_MODE_DEFAULT (1 << 20)
 #define GPIO_MODE_BY_ID (1 << 21)
-#define GPIO_MODE_FUNC(ID) (ID << 22)
+
+#define GPIO_MODE_FUNC_ID_POS 22
+#define GPIO_MODE_FUNC(ID) (ID << GPIO_MODE_FUNC_ID_POS)
+
+#define GPIO_START_ADDRESS 0x60000804
 
 #define MTDI_U     ((struct gpio *) (0x60000804));
 #define MTCK_U     ((struct gpio *) (0x60000808));

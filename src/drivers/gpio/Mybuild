@@ -30,6 +30,10 @@ module stm32 extends api {
 	source "stm32_gpio.c", "stm32_gpio.h"
 }
 
+module esp8266 extends api {
+	source "esp8266_gpio.c", "esp8266_gpio.h"
+}
+
 module omap3_gpio extends api {
 	source "omap3_gpio.c", "omap3_gpio.h"
 
