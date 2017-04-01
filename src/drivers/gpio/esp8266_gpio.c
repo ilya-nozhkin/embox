@@ -36,22 +36,22 @@
 EMBOX_UNIT_INIT(esp8266_gpio_init);
 
 static int esp8266_gpio_init(void) {
-	/*MTDI_U = 1 << 7;
-	MTCK_U = 1 << 7;
-	MTMS_U = 1 << 7;
-	MTDO_U = 1 << 7;
-	U0RXD_U = 1 << 7;
-	U0TXD_U = 1 << 7;
-	SD_CLK_U = 0;
-	SD_DATA0_U = 0;
-	SD_DATA1_U = 0;
-	SD_DATA2_U = 0;
-	SD_DATA3_U = 0;
-	SD_CMD_U = 0;
-	GPIO0_U = 1 << 7;
-	GPIO2_U = 1 << 7;
-	GPIO4_U = 0;
-	GPIO5_U = 0;*/
+	*((uint32_t*) MTDI_U) = 1 << 7;
+	*((uint32_t*) MTCK_U) = 1 << 7;
+	*((uint32_t*) MTMS_U) = 1 << 7;
+	*((uint32_t*) MTDO_U) = 1 << 7;
+	*((uint32_t*) U0RXD_U) = 1 << 7;
+	*((uint32_t*) U0TXD_U) = 1 << 7;
+	*((uint32_t*) SD_CLK_U) = 0;
+	*((uint32_t*) SD_DATA0_U) = 0;
+	*((uint32_t*) SD_DATA1_U) = 0;
+	*((uint32_t*) SD_DATA2_U) = 0;
+	*((uint32_t*) SD_DATA3_U) = 0;
+	*((uint32_t*) SD_CMD_U) = 0;
+	*((uint32_t*) GPIO0_U) = 1 << 7;
+	*((uint32_t*) GPIO2_U) = 1 << 7;
+	*((uint32_t*) GPIO4_U) = 0;
+	*((uint32_t*) GPIO5_U) = 0;
 	
     GPIO_OUT_W1TC = 0xFFFF;
     GPIO_ENABLE_W1TC = 0xFFFF;
