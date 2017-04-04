@@ -7,6 +7,8 @@
  */
  
  #include <drivers/gpio.h>
+ #include <kernel/printk.h>
+ #include <drivers/diag.h>
  
  #define FCPU 160000000
 
@@ -20,18 +22,11 @@ static inline void delay(uint32_t milliseconds) {
 }
 
 void blinky_test() {
-	gpio_settings(gpio_by_num(1), 0, GPIO_MODE_OUTPUT);
+	printk("\nHello! It is simple echo shell. Just type some symbols and you will receive them back:\n");
 	
-	int status = 1;
 	while (1) {
-		delay(1000);
-		if (status) {
-			gpio_set_level(gpio_by_num(1), 0, 0);
-			status = 0;
-		} else {
-			gpio_set_level(gpio_by_num(1), 0, 1);
-			status = 1;
-		}
+		char c = diag_getc();
+		diag_putc(c);
 	}
 }
 
