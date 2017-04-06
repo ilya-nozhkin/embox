@@ -158,6 +158,16 @@ SECTIONS
     _irom0_text_start = ABSOLUTE(.);
 
     *libmbedtls.a:(.literal .text .literal.* .text.*)
+    *(.literal.pow)
+    *(.text.pow)
+    *(.literal.sqrt)
+    *(.text.sqrt)
+    *(.literal.floor)
+    *(.text.floor)
+    *(.literal.fabs)
+    *(.text.fabs)
+    *(.literal.fmod)
+    *(.text.fmod)
 
     *(.irom0.literal .irom.literal .irom.text.literal .irom0.text .irom.text)
     _irom0_text_end = ABSOLUTE(.);

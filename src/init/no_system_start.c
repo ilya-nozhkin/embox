@@ -6,11 +6,13 @@
  * @author Alexander Kalmuk
  */
  
- #include <drivers/gpio.h>
- #include <kernel/printk.h>
- #include <drivers/diag.h>
+#include <drivers/gpio.h>
+#include <kernel/printk.h>
+#include <drivers/diag.h>
  
- #define FCPU 160000000
+#define FCPU 160000000
+ 
+//#include <cmd/shell.h>
 
 //Be careful! This function is very imprecise
 static inline void delay(uint32_t milliseconds) {
@@ -21,8 +23,12 @@ static inline void delay(uint32_t milliseconds) {
 	}
 }
 
+extern int setup_tty(const char *dev_name);
+extern int diag_fd(void);
+
 void blinky_test() {
-	printk("\nHello! It is simple echo shell. Just type some symbols and you will receive them back:\n");
+	//setup_tty("");
+	//printk("\nHello! It is simple echo shell. Just type some symbols and you will receive them back:\n");
 	
 	while (1) {
 		char c = diag_getc();

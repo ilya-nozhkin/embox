@@ -88,6 +88,11 @@ module msp430sfr extends irqctrl_api {
 	       "msp430sfr.h"
 }
 
+module esp8266_intc extends irqctrl_api {
+	source "esp8266_intc.c",
+	       "esp8266_intc.h"
+}
+
 module no_interrupts extends irqctrl_api {
 	source "no_interrupts.h"
 	source "no_interrupts.c"
