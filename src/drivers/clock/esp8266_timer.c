@@ -20,7 +20,6 @@ static irq_return_t clock_handler(unsigned int irq_nr, void *data) {
 }
 
 static int this_init(void) {
-	printk("clock_source_register: %p", &this_clock_source);
 	clock_source_register(&this_clock_source);
 	return 0;
 }
