@@ -5,6 +5,14 @@
  * @date 22.03.2017
  * @author Ilya Nozhkin
  */
+ 
+int __sync_bool_compare_and_swap_4(unsigned long *addr, unsigned long old, unsigned long new) {
+	if (*addr != old) {
+		return 0;
+	}
+	*addr = new;
+	return 1;
+}
 
 void arch_init(void) {
 
