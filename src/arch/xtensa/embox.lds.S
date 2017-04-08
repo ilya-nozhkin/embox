@@ -5,7 +5,7 @@
 MEMORY
 {
   dport0_0_seg : org = 0x3FF00000, len = 0x10
-  dram0_0_seg :  org = 0x3FFE8000, len = 0x14000
+  dram0_0_seg :  org = 0x3FFE8000, len = 0x18000
   iram1_0_seg :  org = 0x40100000, len = 0x8000
   irom0_0_seg :  org = 0x40240000, len = 0x5C000
 }
@@ -407,10 +407,10 @@ PROVIDE ( mem_malloc = 0x40001b40 );
 PROVIDE ( mem_realloc = 0x40001c6c );
 PROVIDE ( mem_trim = 0x40001a14 );
 PROVIDE ( mem_zalloc = 0x40001c58 );
-PROVIDE ( memcmp = 0x4000dea8 );
-PROVIDE ( memcpy = 0x4000df48 );
-PROVIDE ( memmove = 0x4000e04c );
-PROVIDE ( memset = 0x4000e190 );
+//PROVIDE ( memcmp = 0x4000dea8 );
+//PROVIDE ( memcpy = 0x4000df48 );
+//PROVIDE ( memmove = 0x4000e04c );
+//PROVIDE ( memset = 0x4000e190 );
 PROVIDE ( multofup = 0x400031c0 );
 PROVIDE ( pbkdf2_sha1 = 0x4000b840 );
 PROVIDE ( phy_get_romfuncs = 0x40006b08 );
