@@ -1,53 +1,65 @@
 /**
  * @file
- * @brief ESP8266 Timer.
- * @author Ilya Nozhkin
- * @version 0.1
- * @date 2017-04-06
+ *
+ * @brief ESP8266 built-in timer
+ *
+ * @date 10.04.2017
+ * @author Egor Shitov
  */
 
-#include <hal/clock.h>
-#include <hal/reg.h>
-#include <hal/system.h>
-#include <kernel/printk.h>
-#include <kernel/irq.h>
-#include <kernel/time/clock_source.h>
-#include <embox/unit.h>
+ #include <errno.h>
 
-static struct clock_source this_clock_source;
-static irq_return_t clock_handler(unsigned int irq_nr, void *data) {
-	return 0;
-}
+ #include <hal/clock.h>
+ #include <hal/reg.h>
+ #include <kernel/irq.h>
+ #include <kernel/time/clock_source.h>
 
-static int this_init(void) {
-	clock_source_register(&this_clock_source);
-	return 0;
-}
+ #include <embox/unit.h>
 
-static int this_config(struct time_dev_conf * conf) {
-	return 0;
-}
+ #define FREQUENCY 80*1024*1024
 
-static cycle_t this_read(void) {
-	return 0;
-}
+ static struct clock_source this_clock_source;
 
-static struct time_event_device this_event = {
-	.config = this_config,
-	.event_hz = 1000,
-	.irq_nr = 0,
-};
+ static inline unsigned get_ccount(void)
+ {
+         unsigned r;
+         asm volatile ("rsr %0, ccount" : "=r"(r));
+         return r;
+ }
 
-static struct time_counter_device this_counter = {
-	.read = this_read,
-	.cycle_hz = 1000,
-};
+ static struct clock_source this_clock_source;
+ static irq_return_t clock_handler(unsigned int irq_nr, void *data) {
+ 	clock_tick_handler(irq_nr, data);
+ 	return IRQ_HANDLED;
+ }
 
-static struct clock_source this_clock_source = {
-	.name = "system_tick",
-	.event_device = &this_event,
-	.counter_device = &this_counter,
-	.read = clock_source_read,
-};
+ static int esp8266_init(void) {
+ 	clock_source_register(&this_clock_source);
+ 	return ENOERR; //irq_attach(TIMER_IRQ, clock_handler, 0, &this_clock_source, "ESP8266 systick timer");
+ }
 
-EMBOX_UNIT_INIT(this_init);
+ static int esp8266_config(struct time_dev_conf * conf){
+    return 0;
+ }
+
+ static struct time_event_device this_event = {
+ 	.config = esp8266_config,
+ 	.event_hz = 1000,
+ 	.irq_nr = 0,
+ };
+
+ static struct time_counter_device this_counter = {
+  .read = get_ccount,
+  .cycle_hz = FREQUENCY
+ };
+
+ static struct clock_source this_clock_source = {
+ 	.name = "system_tick",
+ 	.event_device = &this_event,
+ 	.counter_device = &this_counter,
+ 	.read = clock_source_read,
+ };
+
+ EMBOX_UNIT_INIT(esp8266_init);
+
+ STATIC_IRQ_ATTACH(0, clock_handler, &this_clock_source);
