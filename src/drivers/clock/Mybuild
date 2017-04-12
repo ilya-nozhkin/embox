@@ -70,6 +70,9 @@ module raspi_systick extends embox.arch.clock {
 module esp8266_timer extends embox.arch.clock {
 	source "esp8266_timer.c"
 
+	option number irq_num = 4
+
+	//depends embox.kernel.irq
 	depends embox.kernel.time.clock_source
 }
 

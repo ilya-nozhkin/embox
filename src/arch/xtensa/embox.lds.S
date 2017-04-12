@@ -198,6 +198,7 @@ SECTIONS
     *(.entry.text)
     *(.spec.call_user_start)
     *(.gnu.version)
+    *(.interrupt_func)
     _text_end = ABSOLUTE(.);
     _etext = .;
   } >iram1_0_seg :iram1_0_phdr
