@@ -76,6 +76,10 @@ SECTIONS
   .irom0.text : ALIGN(4)
   {
     _irom0_text_start = ABSOLUTE(.);
+    
+    *(.rodata)
+    *(.rodata.*)
+    *(.rodata1)
 
     *libmbedtls.a:(.literal .text .literal.* .text.*)
     *(.init.literal)
@@ -108,10 +112,7 @@ SECTIONS
   {
     _rodata_start = ABSOLUTE(.);
     *(.sdk.version)
-    *(.rodata)
-    *(.rodata.*)
     *(.gnu.linkonce.r.*)
-    *(.rodata1)
     __XT_EXCEPTION_TABLE__ = ABSOLUTE(.);
     *(.xt_except_table)
     *(.gcc_except_table)
