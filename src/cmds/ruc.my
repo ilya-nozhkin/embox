@@ -1,0 +1,10 @@
+package embox.cmd
+
+@AutoCmd
+@Cmd(name="ruc",
+	help="runs RuC that executes code from /export.txt",
+	man="")
+module ruc {
+	source "ruc.c"
+	depends third_party.ruc
+}
