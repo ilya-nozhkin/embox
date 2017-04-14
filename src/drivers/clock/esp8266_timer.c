@@ -3,8 +3,8 @@
  *
  * @brief ESP8266 built-in timer
  *
- * @date 10.04.2017
- * @author Egor Shitov
+ * @date 04.06.2017
+ * @author Ilya Nozhkin
  */
 
 #include <errno.h>
@@ -19,84 +19,96 @@
 
 #include <embox/unit.h>
 
-#define FREQUENCY 80*1000*1000
-#define IRQ_NR 8//OPTION_GET(NUMBER, irq_num)
+struct frc1_load {
+	uint32_t frc1_load_value : 23;
+	uint32_t reserved : 9;
+};
 
-typedef void ETSTimerFunc(void *timer_arg);
+struct frc1_count {
+	uint32_t frc1_count : 23;
+	uint32_t reserved : 9;
+};
 
-typedef struct _ETSTIMER_ {
-	struct _ETSTIMER_    *timer_next;
-    uint32_t              timer_expire;
-    uint32_t              timer_period;
-    ETSTimerFunc         *timer_func;
-    void                 *timer_arg;
-} ETSTimer;
+struct frc1_ctrl {
+	uint32_t frc1_ctrl_int_type : 1;
+	uint32_t frc1_ctrl_reserved0 : 1;
+	uint32_t frc1_ctrl_divisor : 2;
+	uint32_t frc1_ctrl_reserved1 : 2;
+	uint32_t frc1_ctrl_autoload : 1;
+	uint32_t frc1_ctrl_enable : 1;
+	uint32_t frc1_int : 1;
+	uint32_t reserved : 23;
+};
 
-extern void ets_timer_arm(ETSTimer*, uint32_t, bool);
-extern void ets_timer_setfn(ETSTimer*, ETSTimerFunc*, void*);
-extern void ets_timer_disarm(ETSTimer*);
+struct frc1_int {
+	uint32_t frc1_int_clr_mask : 1;
+	uint32_t reserved : 31;
+};
 
-static ETSTimer timer;
+#define IRQ_NR 9
 
-static inline unsigned get_ccount(void)
-{
-	// Just check special registers
-	unsigned interrupt;
-	READ_SREG("interrupt", interrupt);
-	printk("interrupt: 0x%X\n", interrupt);
+#define TM1_EDGE_INT (*((volatile uint32_t*) 0x3ff00004))
 
-	unsigned intenable;
-	READ_SREG("intenable", intenable);
-	printk("intenable: 0x%x\n", intenable);
-	// ============================
+#define FRC1_LOAD ((volatile struct frc1_load*) 0x60000600)
+#define FRC1_COUNT ((volatile struct frc1_count*) 0x60000604)
+#define FRC1_CTRL ((volatile struct frc1_ctrl*) 0x60000608)
+#define FRC1_INT ((volatile struct frc1_int*) 0x6000060C)
 
-	unsigned r;
-	READ_SREG("ccount", r);
-	return r;
-}
+#define CLOCK_FREQUENCY 52*1000000
+#define EDGE_FREQUENCY 1000
 
 static struct clock_source this_clock_source;
-static irq_return_t clock_handler(unsigned int irq_nr, void *data) {
+
+extern void ets_intr_unlock(void);
+extern void ets_isr_attach(uint32_t irq_nr, void (*handler)(void*), void *data);
+
+/*static irq_return_t clock_handler(unsigned int irq_nr, void *data) {
 	clock_tick_handler(irq_nr, data);
 	return IRQ_HANDLED;
+}*/
+
+static INTERRUPT_FUNC void event_handler(void* arg) {
+ 	clock_tick_handler(IRQ_NR, &this_clock_source);
 }
 
-// Put it in iram
-static INTERRUPT_FUNC void event_handler(void* arg){
- 	printk("event_handler\n"); // Never triggered 
-}
-
-static int esp8266_init(void) {
- 	// printk("irq_nr: %d\n", IRQ_NR);
-	// set_irq_handler(IRQ_NR, event_handler, NULL);
-	// WRITE_SREG("ccompare0", 10);
-	// unsigned prev;
-	// INTLEVEL_SET(prev, 0);
-	// printk("prev: 0x%X\n", prev);
-	// WRITE_SREG("intenable", 1 << IRQ_NR);
-	// INTLEVEL_RESTORE(prev);
-
-	ets_timer_disarm(&timer);
-	ets_timer_setfn(&timer, event_handler, NULL);
-	ets_timer_arm(&timer, 1000, 1);
-
+static int this_init(void) {
+	ets_intr_unlock();
+	
+	FRC1_CTRL->frc1_ctrl_enable = 1;
+	FRC1_CTRL->frc1_ctrl_int_type = 0;
+	FRC1_CTRL->frc1_ctrl_divisor = 0;
+	FRC1_CTRL->frc1_ctrl_autoload = 1;
+	
+	FRC1_LOAD->frc1_load_value = CLOCK_FREQUENCY / EDGE_FREQUENCY;
 	clock_source_register(&this_clock_source);
-	return irq_attach(IRQ_NR, clock_handler, 0, &this_clock_source, "ESP8266 systick timer");
+	
+	ets_isr_attach(IRQ_NR, &event_handler, NULL);
+	irqctrl_enable(IRQ_NR);
+	
+	TM1_EDGE_INT |= 2;
+	
+ 	return 0;
 }
 
-static int esp8266_config(struct time_dev_conf * conf){
+static int this_config(struct time_dev_conf * conf){
 	return 0;
 }
 
+static cycle_t this_read(void)
+{
+	return 0;
+	//return FRC1_COUNT->frc1_count;
+}
+
 static struct time_event_device this_event = {
-	.config = esp8266_config,
-	.event_hz = 1000,
+	.config = this_config,
+	.event_hz = EDGE_FREQUENCY,
 	.irq_nr = IRQ_NR
 };
 
 static struct time_counter_device this_counter = {
-	.read = get_ccount,
-	.cycle_hz = FREQUENCY
+	.read = this_read,
+	.cycle_hz = EDGE_FREQUENCY
 };
 
 static struct clock_source this_clock_source = {
@@ -106,6 +118,6 @@ static struct clock_source this_clock_source = {
 	.read = clock_source_read,
 };
 
-EMBOX_UNIT_INIT(esp8266_init);
+EMBOX_UNIT_INIT(this_init);
 
-STATIC_IRQ_ATTACH(IRQ_NR, clock_handler, &this_clock_source);
+//STATIC_IRQ_ATTACH(IRQ_NR, clock_handler, &this_clock_source);
