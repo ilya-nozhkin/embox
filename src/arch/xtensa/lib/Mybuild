@@ -7,3 +7,9 @@ static module libarch extends embox.arch.libarch {
 
 static module locore extends embox.arch.locore {
 }
+
+static module vfork extends embox.arch.vfork_entry {
+	source "vfork.S"
+
+	depends embox.compat.posix.proc.vfork_entry
+}

@@ -6,7 +6,7 @@
  * @author Ilya Nozhkin
  */
  
-int __sync_bool_compare_and_swap_4(unsigned long *addr, unsigned long old, unsigned long new) {
+int __attribute__((section(".iram0.text"))) __sync_bool_compare_and_swap_4(unsigned long *addr, unsigned long old, unsigned long new) {
 	if (*addr != old) {
 		return 0;
 	}

@@ -26,5 +26,3 @@ void irqctrl_clear(unsigned int interrupt_nr) {
 
 void irqctrl_force(unsigned int interrupt_nr) {
 }
-
-
