@@ -1,6 +1,10 @@
 
 package embox.arch.xtensa.kernel
 
+module context extends embox.arch.context {
+	source "context.c", "context_switch.S", "context.h"
+}
+
 module arch extends embox.arch.arch {
 	source "arch.c"
 }

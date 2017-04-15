@@ -55,7 +55,7 @@ struct frc1_int {
 #define FRC1_INT ((volatile struct frc1_int*) 0x6000060C)
 
 #define CLOCK_FREQUENCY 52*1000000
-#define EDGE_FREQUENCY 1000
+#define EDGE_FREQUENCY OPTION_GET(NUMBER, frequency)
 
 static struct clock_source this_clock_source;
 
@@ -67,8 +67,16 @@ extern void ets_isr_attach(uint32_t irq_nr, void (*handler)(void*), void *data);
 	return IRQ_HANDLED;
 }*/
 
+static int int_flag = 0;
+
 static INTERRUPT_FUNC void event_handler(void* arg) {
- 	clock_tick_handler(IRQ_NR, &this_clock_source);
+	if (!int_flag) {
+		int_flag = 1;
+		irqctrl_disable(IRQ_NR);
+		clock_tick_handler(IRQ_NR, &this_clock_source);
+		irqctrl_enable(IRQ_NR);
+		int_flag = 0;
+	}
 }
 
 static int this_init(void) {

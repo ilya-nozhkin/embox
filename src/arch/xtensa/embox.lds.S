@@ -163,7 +163,7 @@ SECTIONS
     *(COMMON)
     . = ALIGN (8);
     _bss_end = ABSOLUTE(.);
-    _heap_start = ABSOLUTE(.);
+    _def_heap_start = ABSOLUTE(.);
 /*    _stack_sentry = ALIGN(0x8); */
   } >dram0_0_seg :dram0_0_bss_phdr
 /* __stack = 0x3ffc8000; */
@@ -197,7 +197,8 @@ SECTIONS
     LONG(0)
     . = ALIGN (16);
     *(.entry.text)
-    *(.spec.call_user_start)
+    *(.iram0.text)
+    *(.iram0.text.*)
     *(.gnu.version)
     *(.interrupt_func)
     _text_end = ABSOLUTE(.);
