@@ -111,6 +111,8 @@ SECTIONS
   .rodata : ALIGN(4)
   {
     _rodata_start = ABSOLUTE(.);
+    *(.dram0.rodata)
+    *(.dram0.rodata.*)
     *(.sdk.version)
     *(.gnu.linkonce.r.*)
     __XT_EXCEPTION_TABLE__ = ABSOLUTE(.);
@@ -197,10 +199,9 @@ SECTIONS
     LONG(0)
     . = ALIGN (16);
     *(.entry.text)
-    *(.iram0.text)
-    *(.iram0.text.*)
+    *(.iram1.text)
+    *(.iram1.text.*)
     *(.gnu.version)
-    *(.interrupt_func)
     _text_end = ABSOLUTE(.);
     _etext = .;
   } >iram1_0_seg :iram1_0_phdr

@@ -14,8 +14,6 @@
 
 #define __IRQCTRL_IRQS_TOTAL 32
 
-#define INTERRUPT_FUNC __attribute__((section(".interrupt_func")))
-
 typedef void (_xtos_handler_func)();
 typedef _xtos_handler_func *_xtos_handler;
 
