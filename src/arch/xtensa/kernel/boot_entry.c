@@ -5,7 +5,7 @@ extern void kernel_start();
 extern uint32_t _bss_start;
 extern uint32_t _bss_end;
 
-void __attribute__((section(".iram0.text"))) zerobss(void)
+void zerobss(void)
 {
 	uint32_t *addr = &_bss_start;
 	for (addr = &_bss_start; addr < &_bss_end; addr++)  *addr = 0; //Safe, _bss_start doesn't have to == _bss_end
@@ -19,7 +19,7 @@ extern void Cache_Read_Enable(uint32_t, uint32_t, uint32_t);
 #define SPI0_USER (*((volatile uint32_t*) 0x6000021C))
 #define SPI0_CTRL (*((volatile uint32_t*) 0x60000208))
 
-void __attribute__((section(".iram0.text"))) call_user_start(void) {
+void call_user_start(void) {
 	GPIO0_MUX_alt = 1 << 7;
 	SPI0_USER |= 1 << 5;
 	GPIO_MUX_CFG_alt &= ~(1 << 8);

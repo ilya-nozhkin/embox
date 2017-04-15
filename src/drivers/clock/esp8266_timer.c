@@ -69,7 +69,7 @@ extern void ets_isr_attach(uint32_t irq_nr, void (*handler)(void*), void *data);
 
 static int int_flag = 0;
 
-static INTERRUPT_FUNC void event_handler(void* arg) {
+static void event_handler(void* arg) {
 	if (!int_flag) {
 		int_flag = 1;
 		irqctrl_disable(IRQ_NR);

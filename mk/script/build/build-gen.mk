@@ -349,6 +349,7 @@ nonstatic_modules_type := $(foreach i,$(nonstatic_modules),$(call get,$i,type) )
 		$(call filter_with_sources,$(static_modules)))
 
 my_app := $(call mybuild_resolve_or_die,mybuild.lang.App)
+my_ram := $(call mybuild_resolve_or_die,mybuild.lang.Ram)
 
 @module_h := \
 	$(foreach m,$(build_modules), \
@@ -416,6 +417,10 @@ $(@module_ld_rmk) $(@module_ar_rmk) : id_ = \
 $(@module_ld_rmk) $(@module_ar_rmk) : is_app = \
 		$(if $(strip $(call invoke, \
 				$(call get,$@,allTypes),getAnnotationsOfType,$(my_app))),1)
+				
+$(@module_ld_rmk) $(@module_ar_rmk) : is_ram = \
+		$(if $(strip $(call invoke, \
+				$(call get,$@,includeMember),getAnnotationsOfType,$(my_ram))),1)
 
 build_deps = $(call annotation_value,$1,$(my_bld_dep_value))
 
@@ -441,6 +446,7 @@ $(@module_ld_rmk) $(@module_ar_rmk) :
 		$(call gen_make_dep,$(out),$$$$($(kind)_prerequisites)); \
 		$(call gen_make_tsvar,$(out),module_id,$(id_)); \
 		$(call gen_make_tsvar,$(out),is_app,$(is_app)); \
+		$(call gen_make_tsvar,$(out),is_ram,$(is_ram)); \
 		$(call gen_make_tsvar,$(out),mod_path,$(path)); \
 		$(call gen_make_tsvar,$(out),my_file,$(my_file)); \
 		$(call gen_make_tsvar,$(out),mk_file,$(mk_file)); \
