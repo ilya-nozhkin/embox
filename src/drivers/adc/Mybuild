@@ -1,0 +1,10 @@
+package embox.driver.adc
+
+abstract module api {
+	@IncludeExport(path="drivers")
+	source "adc.h"
+}
+
+module esp8266 extends api {
+	source "esp8266_adc.c"
+}
