@@ -199,6 +199,8 @@ SECTIONS
     LONG(0)
     . = ALIGN (16);
     *(.entry.text)
+    *(.iram1.literal)
+    *(.iram1.literal.*)
     *(.iram1.text)
     *(.iram1.text.*)
     *(.gnu.version)
