@@ -7,6 +7,7 @@
  */
 
 #include <hal/reg.h>
+#include <hal/arch.h>
 #include <drivers/diag.h>
 #include <drivers/diag.h>
 
@@ -82,7 +83,7 @@ struct uart_conf1 {
 #define UART_CONF0 (((volatile struct uart_conf0*) (UART_BASE + 0x20)))
 #define UART_CONF1 (((volatile struct uart_conf1*) (UART_BASE + 0x24)))
 
-#define UART_CLK_FREQ 52*1024*1024
+#define UART_CLK_FREQ PLL_FREQ
 #define BAUD_RATE OPTION_GET(NUMBER, baud_rate)
 
 static int esp8266_uart_diag_init(const struct diag *diag) {

@@ -10,6 +10,7 @@
 #include <errno.h>
 
 #include <hal/clock.h>
+#include <hal/arch.h>
 #include <hal/reg.h>
 #include <kernel/irq.h>
 #include <kernel/time/clock_source.h>
@@ -54,7 +55,7 @@ struct frc1_int {
 #define FRC1_CTRL ((volatile struct frc1_ctrl*) 0x60000608)
 #define FRC1_INT ((volatile struct frc1_int*) 0x6000060C)
 
-#define CLOCK_FREQUENCY 52*1000000
+#define CLOCK_FREQUENCY PLL_FREQ
 #define EDGE_FREQUENCY OPTION_GET(NUMBER, frequency)
 
 static struct clock_source this_clock_source;

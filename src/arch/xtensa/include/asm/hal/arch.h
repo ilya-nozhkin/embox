@@ -7,4 +7,6 @@
 #define BYTE_ORDER    __BYTE_ORDER
 #endif
 
+#define PLL_FREQ 80000000UL
+
 #define __PLATFORM_ARCH "xtensa"

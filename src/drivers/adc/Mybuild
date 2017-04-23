@@ -6,5 +6,5 @@ abstract module api {
 }
 
 module esp8266 extends api {
-	source "esp8266_adc.c"
+	source "esp8266_adc.c", "esp8266_adc.h"
 }
