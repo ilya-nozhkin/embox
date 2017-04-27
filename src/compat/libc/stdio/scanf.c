@@ -292,9 +292,7 @@ static int scan(const char **in, const char *fmt, va_list args) {
 			}
 			fmt++;
 		} else {
-			if (*fmt++ != *(*in)++) {
-				return converted;
-			}
+			fmt++;
 		}
 	}
 
