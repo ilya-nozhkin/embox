@@ -155,6 +155,10 @@ static int scan(const char **in, const char *fmt, va_list args) {
 	int err;
 
 	while (*fmt != '\0') {
+		while (isspace(*fmt)) {
+			fmt++;
+		}
+        
 		if (*fmt == '%') {
 			fmt++;
 			width = 80;
@@ -292,6 +296,12 @@ static int scan(const char **in, const char *fmt, va_list args) {
 			}
 			fmt++;
 		} else {
+			char ch;
+			while (isspace(ch = scanchar(in)));
+            
+			if (*fmt++ != ch) {
+				return converted;
+			}
 			fmt++;
 		}
 	}
