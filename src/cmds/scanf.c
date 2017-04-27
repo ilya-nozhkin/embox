@@ -11,9 +11,9 @@
 int main(int argc, char **argv) {
 	char string[256];
 
+    printf("---Enter your string---\n");
     scanf("%s", string);
     printf("Your sting - %s" ,string);
 
 	return 0;
 }
- 

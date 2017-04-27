@@ -19,8 +19,7 @@ static FILE stdin_struct = {
 FILE *stdin = &stdin_struct;
 
 /* stdout */
-//FIXME it's need the normal fix of (stdout_obuf[16])
-static char stdout_obuf[1];
+static char stdout_obuf[16];
 static FILE stdout_struct = {
 	.fd = STDOUT_FILENO,
 	.flags = O_WRONLY,

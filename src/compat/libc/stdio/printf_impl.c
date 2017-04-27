@@ -67,7 +67,7 @@ static int print_s(void (*printchar_handler)(struct printchar_handler_data *d, i
 	assert(max_len >= 0);
 
 	pc = 0;
-	len = strlen(str);
+	len = strlen(str) + 1;
 	if (ops & OPS_PREC_IS_GIVEN) {
 		len = min(max_len, len);
 	}

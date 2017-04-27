@@ -114,6 +114,9 @@ static int libc_ob_line(FILE *file, const void *buf, size_t len) {
 		}
 		err = libc_ob_add(file, buf, len - writelen);
 	} else {
+		if (0 > (err = libc_ob_forceflush(file))) {
+			return err;
+		}
 		err = libc_ob_add(file, buf, len);
 	}
 
