@@ -1,0 +1,12 @@
+package embox.cmd
+
+@AutoCmd
+@Cmd(name = "scanf",
+	help = "Test scanf function",
+	man = "")
+module scanf {
+	source "scanf.c"
+
+	depends embox.compat.libc.stdio.printf
+}
+ 

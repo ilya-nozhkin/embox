@@ -1,0 +1,12 @@
+package embox.cmd
+
+@AutoCmd
+@Cmd(name = "oops",
+	help = "It should be here!",
+	man = "")
+module oops {
+	source "oops.c"
+
+	depends embox.compat.libc.stdio.printf
+}
+ 
