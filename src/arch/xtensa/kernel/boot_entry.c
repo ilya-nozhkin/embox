@@ -1,4 +1,5 @@
 #include <inttypes.h>
+#include <hal/exception.h>
 
 extern void kernel_start();
 
@@ -28,21 +29,22 @@ extern void ets_update_cpu_frequency(uint32_t);
 void call_user_start(void) {
 	IO_RTC_4 = 0;
 	GPIO0_MUX_alt = 0;
-	
+
 	rom_i2c_writeReg(103, 4, 1, 136);
 	rom_i2c_writeReg(103, 4, 2, 145);
-	
+
 	CLK_PRE_PORT |= 1;
-	
+
 	ets_update_cpu_frequency(80 * 2);
-	
+
 	GPIO0_MUX_alt = 1 << 7;
 	SPI0_USER |= 1 << 5;
 	GPIO_MUX_CFG_alt &= ~(1 << 8);
 	SPI0_CTRL = (SPI0_CTRL & (~0x1FFF)) | 0x0101;
 	Cache_Read_Enable(0, 0, 1);
-	
+
 	zerobss();
+	exception_init();
 	kernel_start();
 }
 

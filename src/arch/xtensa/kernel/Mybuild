@@ -11,4 +11,7 @@ module arch extends embox.arch.arch {
 
 module boot {
 	source "boot_entry.c"
+
+	source "exception.c"
+	source "exception_entry.S"
 }
