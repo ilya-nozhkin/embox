@@ -2,7 +2,7 @@
 package embox.arch.xtensa.kernel
 
 module context extends embox.arch.context {
-	source "context.c", "context_switch.S", "context.h"
+	source "context.c", "context_asm.S", "context.h"
 }
 
 module arch extends embox.arch.arch {
@@ -11,4 +11,10 @@ module arch extends embox.arch.arch {
 
 module boot {
 	source "boot_entry.c"
+}
+
+module exceptions {
+	source "exceptions_asm.S", "exceptions.c"
+	
+	depends embox.arch.system
 }

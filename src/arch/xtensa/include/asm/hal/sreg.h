@@ -14,5 +14,7 @@
 
 #define READ_SREG(from, value) \
 	asm volatile ("rsr %0, " from : "=r"(value))
+	
+#define RSYNC() asm volatile ("rsync")
 
 #endif /* XTENSA_SREG_H_ */

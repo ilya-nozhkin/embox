@@ -61,23 +61,10 @@ struct frc1_int {
 static struct clock_source this_clock_source;
 
 extern void ets_intr_unlock(void);
-extern void ets_isr_attach(uint32_t irq_nr, void (*handler)(void*), void *data);
 
-/*static irq_return_t clock_handler(unsigned int irq_nr, void *data) {
+static irq_return_t clock_handler(unsigned int irq_nr, void *data) {
 	clock_tick_handler(irq_nr, data);
 	return IRQ_HANDLED;
-}*/
-
-static int int_flag = 0;
-
-static void event_handler(void* arg) {
-	if (!int_flag) {
-		int_flag = 1;
-		irqctrl_disable(IRQ_NR);
-		clock_tick_handler(IRQ_NR, &this_clock_source);
-		irqctrl_enable(IRQ_NR);
-		int_flag = 0;
-	}
 }
 
 static int this_init(void) {
@@ -91,7 +78,7 @@ static int this_init(void) {
 	FRC1_LOAD->frc1_load_value = CLOCK_FREQUENCY / EDGE_FREQUENCY;
 	clock_source_register(&this_clock_source);
 	
-	ets_isr_attach(IRQ_NR, &event_handler, NULL);
+	irq_attach(IRQ_NR, clock_handler, 0, &this_clock_source, "ESP8266 systick timer");
 	irqctrl_enable(IRQ_NR);
 	
 	TM1_EDGE_INT |= 2;

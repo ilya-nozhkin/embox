@@ -197,7 +197,8 @@ SECTIONS
     LONG(0)
     LONG(0)
     LONG(0)
-    . = ALIGN (16);
+    . = ALIGN (0x100);
+    *(.iram1.text.vector_base)
     *(.entry.text)
     *(.iram1.literal)
     *(.iram1.literal.*)
