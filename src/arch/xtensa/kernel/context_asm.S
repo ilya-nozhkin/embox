@@ -12,8 +12,6 @@ _context_store:
 	
 	s32i a15, a2, 60
 	
-	isync
-	
 	rsr.sar  a15
 	s32i     a15, a2, 64
 	rsr.ps   a15
@@ -26,17 +24,11 @@ _context_store:
 	l32i a15, a1, 0
 	s32i a15, a2, 0
 	
-	isync
-	
 	l32i a15, a1, 4
 	s32i a15, a2, 4
 	
-	isync
-	
 	l32i a15, a1, 8
 	s32i a15, a2, 8
-	
-	isync
 	
 	s32i a3,  a2, 12
 	s32i a4,  a2, 16
@@ -50,8 +42,6 @@ _context_store:
 	s32i a12, a2, 48
 	s32i a13, a2, 52
 	s32i a14, a2, 56
-	
-	isync
 	
 	ret
 	
@@ -71,17 +61,11 @@ _context_load:
 	l32i a4,  a2, 16
 	l32i a3,  a2, 12
 	
-	isync
-	
 	l32i a1, a2, 4
 	addi a1, a1, -4
 	
-	isync
-	
 	l32i a15, a2, 0
 	s32i a15, a1, 0
-	
-	isync
 	
 	l32i     a15, a2, 72
 	wsr.epc1 a15
@@ -94,7 +78,7 @@ _context_load:
 	
 	l32i a15, a2, 60
 	
-	isync
+	l32i a2,  a2, 8
 	
 	ret
 
@@ -134,6 +118,8 @@ context_switch:
 	l32i     a4, a3, 64
 	wsr.sar  a4
 	
+	isync
+	
 	l32i    a15, a3, 60
 	l32i    a14, a3, 56
 	l32i    a13, a3, 52
@@ -150,9 +136,6 @@ context_switch:
 	l32i    a1, a3, 4
 	l32i    a0, a3, 0
 	
-	isync
-	
 	l32i    a3, a3, 12
 	
-	isync
 	ret

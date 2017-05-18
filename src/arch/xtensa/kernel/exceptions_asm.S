@@ -30,34 +30,37 @@ nmi_exception_vector:
 kernel_exception_vector:
 	.type kernel_exception_vector, @function
 	
-	rfe
+	j exception_handler
 	
 	.org exceptions_vector_base + 0x50
 user_exception_vector:
 	.type user_exception_vector, @function
 	
-	j user_exception_handler
+	j exception_handler
 	
 	.org exceptions_vector_base + 0x70
 double_exception_vector:
 	.type double_exception_vector, @function
 	
-	rfde
+	j exception_handler
 
-user_exception_handler:
-	.type user_exception_handler, @function
+exception_handler:
+	.type exception_handler, @function
 	
-	addi a1, a1, -88
+	//76 - context
+	//12 - parameters for _context_store
+	//4 - a0 passed from _context_load
+	addi a1, a1, -92
 	s32i a0, a1, 0
 	s32i a2, a1, 8
-	addi a2, a1, 88
+	addi a2, a1, 92
 	s32i a2, a1, 4
 	addi a2, a1, 12
 	call0 _context_store
 	addi a1, a1, 12
 	
 	mov a2, a1
-	call0 user_exception_c_handler
+	call0 exception_c_handler
 	
 	mov a2, a1
 	call0 _context_load

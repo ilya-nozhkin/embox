@@ -60,16 +60,12 @@ struct frc1_int {
 
 static struct clock_source this_clock_source;
 
-extern void ets_intr_unlock(void);
-
 static irq_return_t clock_handler(unsigned int irq_nr, void *data) {
 	clock_tick_handler(irq_nr, data);
 	return IRQ_HANDLED;
 }
 
 static int this_init(void) {
-	ets_intr_unlock();
-	
 	FRC1_CTRL->frc1_ctrl_enable = 1;
 	FRC1_CTRL->frc1_ctrl_int_type = 0;
 	FRC1_CTRL->frc1_ctrl_divisor = 0;

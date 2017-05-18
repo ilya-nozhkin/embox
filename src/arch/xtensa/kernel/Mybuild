@@ -16,5 +16,12 @@ module boot {
 module exceptions {
 	source "exceptions_asm.S", "exceptions.c"
 	
-	depends embox.arch.system
+	depends arch
+}
+
+module interrupt extends embox.arch.interrupt {
+	source "ipl_impl.h"
+
+	depends arch
+	depends exceptions
 }
