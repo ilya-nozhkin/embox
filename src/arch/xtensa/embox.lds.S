@@ -19,6 +19,9 @@ PHDRS
   irom0_0_phdr PT_LOAD;
 }
 
+_ram_base = ORIGIN(dram0_0_seg);
+_ram_size = LENGTH(dram0_0_seg);
+
 
 /*  Default entry point:  */
 ENTRY(call_user_start)
@@ -174,29 +177,6 @@ SECTIONS
   {
     _stext = .;
     _text_start = ABSOLUTE(.);
-    *(.UserEnter.text)
-    . = ALIGN(16);
-    *(.DebugExceptionVector.text)
-    . = ALIGN(16);
-    *(.NMIExceptionVector.text)
-    . = ALIGN(16);
-    *(.KernelExceptionVector.text)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    . = ALIGN(16);
-    *(.UserExceptionVector.text)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    . = ALIGN(16);
-    *(.DoubleExceptionVector.text)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    LONG(0)
     . = ALIGN (0x100);
     *(.iram1.text.vector_base)
     *(.entry.text)

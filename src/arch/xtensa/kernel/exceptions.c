@@ -12,8 +12,8 @@ EMBOX_UNIT_INIT(xtensa_exceptions_init);
 
 extern uint32_t exceptions_vector_base;
 
-#define MODULE 37
-static uint8_t powers_by_mod[MODULE] = {0,  0,  1,  26, 2,  23, 
+#define MODULO 37
+static uint8_t powers_by_mod[MODULO] = {0,  0,  1,  26, 2,  23, 
                                         27, 0,  3,  16, 24, 30,
                                         28, 11, 0,  13, 4,  7,
                                         17, 0,  25, 22, 31, 15,
@@ -29,7 +29,7 @@ static inline void return_to_normal_mode() {
 }
 
 static inline int fast_handle(struct context *ctx, uint32_t interrupt) {
-	uint32_t irq_nr = powers_by_mod[interrupt % MODULE];
+	uint32_t irq_nr = powers_by_mod[interrupt % MODULO];
 	uint32_t mask = 1 << irq_nr;
 	
 	if (interrupt & mask) {
