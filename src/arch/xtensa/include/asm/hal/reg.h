@@ -20,6 +20,14 @@
 
 #define __REG_ANDIN(addr, mask) \
 		__REG_STORE(addr, REG_LOAD(addr) & (char)(mask))
+		
+#define SREG_WRITE(to, value) \
+	asm volatile ("wsr %0, " to : : "r"(value));
+
+#define SREG_READ(from, value) \
+	asm volatile ("rsr %0, " from : "=r"(value))
+	
+#define RSYNC() asm volatile ("rsync")
 
 #endif /* XTENSA_REG_H_ */
 
