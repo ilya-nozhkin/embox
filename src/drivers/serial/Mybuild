@@ -92,6 +92,7 @@ module esp8266_uart extends embox.driver.diag.diag_api {
 	source "esp8266_uart.c"
 	
 	depends embox.driver.gpio.esp8266
+	depends core_old
 }
 
 module pic32mx_uart extends embox.driver.diag.diag_api {

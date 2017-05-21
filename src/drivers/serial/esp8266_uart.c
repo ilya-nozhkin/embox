@@ -9,9 +9,10 @@
 #include <hal/reg.h>
 #include <hal/arch.h>
 #include <drivers/diag.h>
-#include <drivers/diag.h>
-
+#include <drivers/serial/uart_device.h>
 #include <drivers/gpio.h>
+
+#include <embox/unit.h>
 
 struct uart_clkdiv {
 	uint32_t value : 20;
@@ -129,3 +130,33 @@ DIAG_OPS_DECLARE(
 		.getc = esp8266_uart_diag_getc,
 		.kbhit = esp8266_uart_diag_kbhit,
 );
+
+static const struct uart_ops esp8266_uart_ops = {
+		.uart_getc = esp8266_uart_diag_getc,
+		.uart_putc = esp8266_uart_diag_putc,
+		.uart_hasrx = esp8266_uart_diag_kbhit,
+		.uart_setup = esp8266_uart_diag_init,
+};
+
+static struct uart esp8266_uart0 = {
+		.uart_ops = &esp8266_uart_ops,
+		.irq_num = -1,
+		.base_addr = &UART_FIFO,
+};
+
+static const struct uart_params uart_defparams = {
+		.baud_rate = BAUD_RATE,
+		.parity = 0,
+		.n_stop = 1,
+		.n_bits = 8,
+		.irq = false,
+};
+
+static int esp8266_uart_mod_init(void) {
+	int result = uart_register(&esp8266_uart0, &uart_defparams);
+	printk("\n%d\n", result);
+
+	return 0;
+}
+
+EMBOX_UNIT_INIT(esp8266_uart_mod_init);
