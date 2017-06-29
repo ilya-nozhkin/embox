@@ -1,0 +1,7 @@
+package embox.driver.sensors
+
+module dht11 {
+	source "dht11.c", "dht11.h"
+
+    depends embox.driver.gpio.esp8266
+}
