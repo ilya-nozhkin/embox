@@ -1,10 +1,27 @@
 
 package embox.arch.xtensa.kernel
 
+module context extends embox.arch.context {
+	source "context.c", "context_asm.S", "context.h"
+}
+
 module arch extends embox.arch.arch {
 	source "arch.c"
 }
 
 module boot {
 	source "boot_entry.c"
+}
+
+module exceptions {
+	source "exceptions_asm.S", "exceptions.c"
+	
+	depends arch
+}
+
+module interrupt extends embox.arch.interrupt {
+	source "ipl_impl.h"
+
+	depends arch
+	depends exceptions
 }

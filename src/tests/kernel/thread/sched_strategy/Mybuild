@@ -18,5 +18,6 @@ module priority_based_test {
 	source "priority_based_test.c"
 
 	depends embox.framework.LibFramework
+	depends embox.kernel.sched.strategy.priority_based
 }
 

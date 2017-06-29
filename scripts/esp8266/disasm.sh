@@ -1,1 +1,1 @@
-xtensa-lx106-elf-objdump -D build/base/bin/embox > disasm
+xtensa-lx106-elf-objdump -S build/base/bin/embox > disasm

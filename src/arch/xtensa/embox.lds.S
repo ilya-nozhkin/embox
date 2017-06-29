@@ -5,7 +5,7 @@
 MEMORY
 {
   dport0_0_seg : org = 0x3FF00000, len = 0x10
-  dram0_0_seg :  org = 0x3FFE8000, len = 0x18000
+  dram0_0_seg :  org = 0x3FFE8000, len = 0x14000
   iram1_0_seg :  org = 0x40100000, len = 0x8000
   irom0_0_seg :  org = 0x40240000, len = 0x5C000
 }
@@ -18,6 +18,9 @@ PHDRS
   iram1_0_phdr PT_LOAD;
   irom0_0_phdr PT_LOAD;
 }
+
+_ram_base = ORIGIN(dram0_0_seg);
+_ram_size = LENGTH(dram0_0_seg);
 
 
 /*  Default entry point:  */
@@ -111,6 +114,8 @@ SECTIONS
   .rodata : ALIGN(4)
   {
     _rodata_start = ABSOLUTE(.);
+    *(.dram0.rodata)
+    *(.dram0.rodata.*)
     *(.sdk.version)
     *(.gnu.linkonce.r.*)
     __XT_EXCEPTION_TABLE__ = ABSOLUTE(.);
@@ -163,7 +168,7 @@ SECTIONS
     *(COMMON)
     . = ALIGN (8);
     _bss_end = ABSOLUTE(.);
-    _heap_start = ABSOLUTE(.);
+    _def_heap_start = ABSOLUTE(.);
 /*    _stack_sentry = ALIGN(0x8); */
   } >dram0_0_seg :dram0_0_bss_phdr
 /* __stack = 0x3ffc8000; */
@@ -172,34 +177,14 @@ SECTIONS
   {
     _stext = .;
     _text_start = ABSOLUTE(.);
-    *(.UserEnter.text)
-    . = ALIGN(16);
-    *(.DebugExceptionVector.text)
-    . = ALIGN(16);
-    *(.NMIExceptionVector.text)
-    . = ALIGN(16);
-    *(.KernelExceptionVector.text)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    . = ALIGN(16);
-    *(.UserExceptionVector.text)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    . = ALIGN(16);
-    *(.DoubleExceptionVector.text)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    . = ALIGN (16);
+    . = ALIGN (0x100);
+    *(.iram1.text.vector_base)
     *(.entry.text)
-    *(.spec.call_user_start)
+    *(.iram1.literal)
+    *(.iram1.literal.*)
+    *(.iram1.text)
+    *(.iram1.text.*)
     *(.gnu.version)
-    *(.interrupt_func)
     _text_end = ABSOLUTE(.);
     _etext = .;
   } >iram1_0_seg :iram1_0_phdr

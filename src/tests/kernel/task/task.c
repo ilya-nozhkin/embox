@@ -28,6 +28,9 @@ static void *tsk_hnd2(void *data) {
 }
 
 TEST_CASE("Create two tasks") {
-	new_task("", tsk_hnd1, NULL);
-	new_task("", tsk_hnd2, NULL);
+	pid_t pid1 = new_task("", tsk_hnd1, NULL);
+	pid_t pid2 = new_task("", tsk_hnd2, NULL);
+	
+	task_waitpid(pid1);
+	task_waitpid(pid2);
 }

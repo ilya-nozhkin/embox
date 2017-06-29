@@ -101,6 +101,7 @@ $(OBJ_DIR)/module/%.a : mk/arhelper.mk
 		O_FILES='$(o_files)' \
 		APP_ID='$(is_app)' $(if $(is_app), \
 			OBJCOPY='$(OBJCOPY)' OBJCOPYFLAGS='$(objcopy_flags)')
+	$(if $(is_ram),$(OBJCOPY) --rename-section .text=.iram1.text --rename-section .rodata=.dram0.rodata $@)
 
 ld_prerequisites = $(module_prereqs)
 obj_build=$(if $(strip $(value mod_postbuild)),$@.build.o,$@)
@@ -109,6 +110,7 @@ $(OBJ_DIR)/module/%.o :
 	$(LD) -r -o $(obj_build) $(ldflags) $(call fmt_line,$(o_files) \
             $(if $(a_files),--whole-archive $(a_files) --no-whole-archive))
 	$(if $(module_id),$(OBJCOPY) $(objcopy_flags) $(obj_build))
+	$(if $(is_ram),$(OBJCOPY) --rename-section .text.module.$(module_id)=.iram1.text.module.$(module_id) --rename-section .rodata.module.$(module_id)=.dram0.rodata.module.$(module_id) $(obj_build))
 	$(mod_postbuild)
 
 

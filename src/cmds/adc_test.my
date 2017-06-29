@@ -1,0 +1,19 @@
+
+package embox.cmd
+
+@AutoCmd
+@Cmd(name = "adc_test",
+	help = "prints adc value",
+	man = '''
+		NAME
+			adc_test
+		SYNOPSIS
+		DESCRIPTION
+		AUTHOR
+			Ilya Nozhkin
+	''')
+module adc_test {
+	source "adc_test.c"
+
+	depends embox.driver.adc.esp8266
+}

@@ -43,7 +43,7 @@ TEST_CASE("create task and send signal") {
 	kill(tid, 9);
 	ksleep(100);
 	test_assert(flag != 0);
-
+	task_waitpid(tid);
 }
 
 static void sig_hnd2(int sig) {
@@ -80,6 +80,7 @@ TEST_CASE("create task and send him signal 3 times") {
 
 	test_assert(flag2 == 2);
 
+	task_waitpid(tid);
 }
 
 static void *thread_hnd(void *arg) {
@@ -100,5 +101,5 @@ static void *task_hnd_thread(void *arg) {
 }
 
 TEST_CASE("create a task with 2 threads, kill it") {
-	 new_task("", task_hnd_thread, NULL);
+	 task_waitpid(new_task("", task_hnd_thread, NULL));
 }

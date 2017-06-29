@@ -1,0 +1,17 @@
+
+package embox.cmd
+
+@AutoCmd
+@Cmd(name = "task_switch_test",
+	help = "runs tasks and checks that they switch",
+	man = '''
+		NAME
+			task_switch_test
+		SYNOPSIS
+		DESCRIPTION
+		AUTHOR
+			Ilya Nozhkin
+	''')
+module task_switch_test {
+	source "task_switch_test.c"
+}

@@ -10,6 +10,7 @@
 #include <errno.h>
 
 #include <hal/clock.h>
+#include <hal/arch.h>
 #include <hal/reg.h>
 #include <kernel/irq.h>
 #include <kernel/time/clock_source.h>
@@ -54,26 +55,17 @@ struct frc1_int {
 #define FRC1_CTRL ((volatile struct frc1_ctrl*) 0x60000608)
 #define FRC1_INT ((volatile struct frc1_int*) 0x6000060C)
 
-#define CLOCK_FREQUENCY 52*1000000
-#define EDGE_FREQUENCY 1000
+#define CLOCK_FREQUENCY PLL_FREQ
+#define EDGE_FREQUENCY OPTION_GET(NUMBER, frequency)
 
 static struct clock_source this_clock_source;
 
-extern void ets_intr_unlock(void);
-extern void ets_isr_attach(uint32_t irq_nr, void (*handler)(void*), void *data);
-
-/*static irq_return_t clock_handler(unsigned int irq_nr, void *data) {
+static irq_return_t clock_handler(unsigned int irq_nr, void *data) {
 	clock_tick_handler(irq_nr, data);
 	return IRQ_HANDLED;
-}*/
-
-static INTERRUPT_FUNC void event_handler(void* arg) {
- 	clock_tick_handler(IRQ_NR, &this_clock_source);
 }
 
 static int this_init(void) {
-	ets_intr_unlock();
-	
 	FRC1_CTRL->frc1_ctrl_enable = 1;
 	FRC1_CTRL->frc1_ctrl_int_type = 0;
 	FRC1_CTRL->frc1_ctrl_divisor = 0;
@@ -82,7 +74,7 @@ static int this_init(void) {
 	FRC1_LOAD->frc1_load_value = CLOCK_FREQUENCY / EDGE_FREQUENCY;
 	clock_source_register(&this_clock_source);
 	
-	ets_isr_attach(IRQ_NR, &event_handler, NULL);
+	irq_attach(IRQ_NR, clock_handler, 0, &this_clock_source, "ESP8266 systick timer");
 	irqctrl_enable(IRQ_NR);
 	
 	TM1_EDGE_INT |= 2;
