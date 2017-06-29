@@ -13,7 +13,7 @@
 extern int ruc_import();
 
 int main(int argc, char *argv[]) {
-	ruc_import();
+	ruc_import("/export.txt");
 	fflush(stdout);
 	return 0;
 }
