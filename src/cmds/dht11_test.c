@@ -4,15 +4,13 @@
 #include <drivers/sensors/dht11.h>
 
 int main(int argc, char **argv) {
-	printf("Sending request\n");
 	dht11_request();
-	usleep(18);
 
-    struct dht11_response res = dht11_read_response(atoi(argv[0]));
+    struct dht11_response res = dht11_read_response();
 
-    printf("RH: %d . %d T: %d . %d Checksum: %d\n", res.integral_rh, res.float_rh,
-                                                    res.integral_temp, res.float_temp,
-                                                    res.checksum);
+    printf("RH: %d.%d%% T: %d.%dC Valid: %d\n", res.integral_rh, res.float_rh,
+                                                res.integral_temp, res.float_temp,
+												res.ok);
 
 	return 0;
 }

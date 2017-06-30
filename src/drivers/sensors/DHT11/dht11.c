@@ -5,11 +5,12 @@
 #include <hal/clock.h>
 #include <hal/system.h>
 
-#include <kernel/printk.h>
 #include "dht11.h"
 
+#define PIN_NUMBER OPTION_GET(NUMBER,pin_numer)
+
 static struct gpio* dht;
-static uint32_t timestamp(void){
+static inline uint32_t timestamp(void){
     uint32_t ccount;
     asm volatile ("rsr %0, ccount" : "=r"(ccount));
     return ccount / (SYS_CLOCK / 1000000);
@@ -36,13 +37,16 @@ static gpio_mask_t wait_another_level(gpio_mask_t current_level){
 
 EMBOX_UNIT_INIT(dht11_start);
 static int dht11_start(void){
-    dht = gpio_by_num(5);
+    dht = gpio_by_num(PIN_NUMBER);
     gpio_settings(dht, 0, GPIO_MODE_OUTPUT);
     gpio_set_level(dht, 0, 1);
 
-    custom_delay(1 * 1000000);
-    dht11_request();
+    // Well, it is needing to avoid garbage from sensor (according to documentation)
+    //custom_delay(1 * 1000000);
+    return 0;
+}
 
+struct dht11_response dht11_read_response(void){
     gpio_settings(dht, 0, GPIO_MODE_INPUT);
 
     gpio_mask_t current_level = 1;
@@ -81,11 +85,16 @@ static int dht11_start(void){
     uint32_t frh = (result & 0xFF0000) >> 16;
     uint32_t irh = (result & 0xFF000000) >> 24;
 
-    bool ok = (irh + frh + it + ft) & 0xFF & checksum;
+    int ok = ((irh + frh + it + ft) & 0xFF) == checksum;
 
-    printk("\nOK: %d Rh: %d . %d T: %d . %d\n", ok, irh, frh, it, ft);
+    struct dht11_response res;
+    res.integral_temp = it;
+    res.float_temp = ft;
+    res.integral_rh = irh;
+    res.float_rh = frh;
+    res.ok = ok;
 
-    return 0;
+    return res;
 }
 
 void dht11_request(void){
