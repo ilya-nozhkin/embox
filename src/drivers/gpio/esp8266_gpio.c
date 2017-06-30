@@ -102,6 +102,12 @@ int gpio_settings(struct gpio *gpiop, gpio_mask_t mask, int mode) {
 		
 		if (mode & GPIO_MODE_INPUT) {
 			gpio_disable(id);
+			
+			if (mode & GPIO_MODE_IN_PULL_UP) {
+				gpiop->pullup = 1;
+			} else if (mode & GPIO_MODE_IN_PULL_DOWN) {
+				gpiop->pullup = 0;
+			}
 		} else {
 			gpio_enable(id);
 		}
