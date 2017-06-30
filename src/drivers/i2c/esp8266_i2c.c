@@ -18,16 +18,16 @@ struct gpio *scl;
 static void delay() {
 	uint32_t last = 0;
 	SREG_READ("ccount", last);
-	
+
 	while (1) {
 		uint32_t current = 0;
 		SREG_READ("ccount", current);
 		RSYNC();
-		
+
 		if (current - last >= DELAY) {
 			break;
 		}
-		
+
 		last = current;
 	}
 }
@@ -48,16 +48,16 @@ static inline gpio_mask_t line_get(struct gpio *line) {
 void i2c_start(void) {
 	sda = gpio_by_num(SDA_PIN_NUMBER);
 	scl = gpio_by_num(SCL_PIN_NUMBER);
-	
+
 	gpio_settings(scl, 0, GPIO_MODE_INPUT | GPIO_MODE_IN_PULL_UP);
 	gpio_settings(sda, 0, GPIO_MODE_INPUT | GPIO_MODE_IN_PULL_UP);
-	
+
 	gpio_set_level(scl, 0, 0);
 	gpio_set_level(sda, 0, 0);
-	
+
 	line_up(scl);
 	delay();
-	
+
 	line_down(sda);
 	delay();
 	line_up(sda);
@@ -71,6 +71,25 @@ void i2c_stop(void) {
 }
 
 uint8_t i2c_send(uint8_t data) {
+	gpio_settings(sda, 0, GPIO_MODE_OUTPUT);
+	gpio_settings(scl, 0, GPIO_MODE_OUTPUT);
+	line_down(sda);
+	for (uint8_t i = 0; i < 7; i++) {
+		uint8_t bit = (data >> i) & 1;
+		line_up(scl);
+		if(bit)
+			line_up(scl);
+		delay();
+		line_down(scl);
+		line_down(sda);
+	}
+	delay();
+	gpio_settings(sda, 0, GPIO_MODE_OUTPUT);
+	line_up(scl);
+	uint8_t check_bit = gpio_get_level(sda, 0);
+	delay();
+	line_down(scl);
+	return check_bit;
 }
 
 uint8_t i2c_receive(uint8_t last) {
