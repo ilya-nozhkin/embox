@@ -70,4 +70,44 @@ uint8_t i2c_send(uint8_t data) {
 }
 
 uint8_t i2c_receive(uint8_t last) {
+
+	lineDown (SCL);
+
+	uint8_t bite=0;
+	struct gpio_mask_t SDAlevel;
+
+	for (unsigned int i = 0; i < 8; i++ )
+	{
+		bite = bite<<1;
+		delay();
+		lineUp(SCL);
+		SDAlevel = gpio_get_level(SDA, 0);
+
+		if (SDAlevel == 1)
+		{
+			bite = bite | 1;
+		}
+
+		lineDown (SCL);
+	}
+
+	delay();
+
+	if (last == 0)
+	{
+		lineDown(SDA);
+		lineUp(SCL);
+		delay();
+		lineDown(SCL);
+		lineUp(SDA);
+	}
+	else
+	{
+		lineUp(SCL);
+		delay();
+		lineDown(SCL);
+	}
+
+
+	return bite;
 }
