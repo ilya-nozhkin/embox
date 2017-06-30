@@ -1,7 +1,9 @@
 package embox.driver.sensors
 
 module dht11 {
-	source "dht11.c", "dht11.h"
+    source "dht11.c"
+    @IncludeExport(path="drivers/sensors")
+	source "dht11.h"
 
     depends embox.driver.gpio.esp8266
 }
