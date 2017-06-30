@@ -41,9 +41,20 @@ static int dht11_start(void){
     gpio_settings(dht, 0, GPIO_MODE_OUTPUT);
     gpio_set_level(dht, 0, 1);
 
-    // Well, it is needing to avoid garbage from sensor (according to documentation)
-    //custom_delay(1 * 1000000);
+    // Well, it is needed to avoid garbage from sensor (according to documentation)
+    // custom_delay(1 * 1000000);
     return 0;
+}
+
+// updates current_level and current_ts
+// returns delta
+static inline uint32_t handle_change(gpio_mask_t* current_level, uint32_t* current_ts){
+    *current_level = wait_another_level(*current_level);
+    uint32_t ts = timestamp();
+    uint32_t delta = ts - *current_ts;
+    *current_ts = ts;
+
+    return delta;
 }
 
 struct dht11_response dht11_read_response(void){
@@ -59,22 +70,17 @@ struct dht11_response dht11_read_response(void){
 
     uint32_t result = 0;
     uint8_t checksum = 0;
+    current_ts = timestamp();
 
     for(uint8_t i = 0; i < 64; i++){
-        current_level = wait_another_level(current_level);
-        uint32_t ts = timestamp();
-        uint32_t delta = ts - current_ts;
-        current_ts = ts;
+        uint32_t delta = handle_change(&current_level, &current_ts);
 
         if(i%2 == 0 && delta > 30)
             result |= (1 << (32 - i/2));
     }
 
     for(uint8_t i = 0; i < 16; i++){
-        current_level = wait_another_level(current_level);
-        uint32_t ts = timestamp();
-        uint32_t delta = ts - current_ts;
-        current_ts = ts;
+        uint32_t delta = handle_change(&current_level, &current_ts);
 
         if(i%2 == 0 && delta > 30)
             checksum |= (1 << (8 - i/2));
