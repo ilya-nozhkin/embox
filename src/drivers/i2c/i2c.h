@@ -1,27 +1,12 @@
 #ifndef DRIVERS_I2C_H_
 #define DRIVERS_I2C_H_
 
-struct i2c_device {
-	struct i2c_device *next;
-};
+#include <stdint.h>
 
-struct i2c_adapter {
-	void *priv;
-};
+void i2c_start(void);
+void i2c_stop(void);
 
-struct i2c_bus {
-	int id;
-	int free_entry;
-	struct i2c_adapter *adapter;
-	struct i2c_device devices;
-};
-
-int register_i2c_bus(struct i2c_adapter*);
-int unregister_i2c_bus(int bus_id);
-struct i2c_bus* get_i2c_bus(int);
-int enumerate_i2c_buses(int (*)(int, void*), void*);
-
-int register_i2c_device(int, struct i2c_device*);
-int enumerate_i2c_devices(int, int (*)(struct i2c_device*, void*), void*);
+uint8_t i2c_send(uint8_t data);
+uint8_t i2c_receive(uint8_t last);
 
 #endif
