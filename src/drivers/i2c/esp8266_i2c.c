@@ -41,6 +41,10 @@ static inline void line_up(struct gpio *line) {
 	gpio_settings(line, 0, GPIO_MODE_INPUT | GPIO_MODE_IN_PULL_UP);
 }
 
+static inline gpio_mask_t line_get(struct gpio *line) {
+	return gpio_get_level(line, 0);
+}
+
 void i2c_start(void) {
 	sda = gpio_by_num(SDA_PIN_NUMBER);
 	scl = gpio_by_num(SCL_PIN_NUMBER);
@@ -70,44 +74,38 @@ uint8_t i2c_send(uint8_t data) {
 }
 
 uint8_t i2c_receive(uint8_t last) {
+	uint8_t byte = 0;
+	struct gpio_mask_t sda_level;
 
-	lineDown (SCL);
-
-	uint8_t bite=0;
-	struct gpio_mask_t SDAlevel;
-
-	for (unsigned int i = 0; i < 8; i++ )
-	{
-		bite = bite<<1;
+	for (uint8_t i = 0; i < 8; i++) {
+		byte = byte << 1;
+		line_down(scl);
 		delay();
-		lineUp(SCL);
-		SDAlevel = gpio_get_level(SDA, 0);
+		line_up(scl);
+		delay();
+		sda_level = line_get(sda);
 
-		if (SDAlevel == 1)
-		{
-			bite = bite | 1;
+		if (sda_level) {
+			byte |= 1;
 		}
-
-		lineDown (SCL);
 	}
 
-	delay();
+	line_down(scl);
 
 	if (last == 0)
 	{
-		lineDown(SDA);
-		lineUp(SCL);
+		line_down(sda);
 		delay();
-		lineDown(SCL);
-		lineUp(SDA);
+		line_up(scl);
+		delay();
+		line_up(sda);
 	}
 	else
 	{
-		lineUp(SCL);
 		delay();
-		lineDown(SCL);
+		line_up(scl);
+		delay();
 	}
 
-
-	return bite;
+	return byte;
 }
