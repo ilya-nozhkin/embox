@@ -28,7 +28,7 @@ static gpio_mask_t wait_another_level(gpio_mask_t current_level){
             return level;
 
         if(--timeout == 0)
-            return 2;
+            return 2; // error code
     }
 }
 
@@ -62,15 +62,12 @@ struct dht11_response dht11_read_response(void){
     gpio_mask_t current_level = 1;
     uint32_t current_ts = timestamp();
 
-    for(int i = 0; i < 2; i++){
+    for(int i = 0; i < 3; i++){
         current_level = wait_another_level(current_level);
 
         if(current_level == 2){ // timeout :c
-            res.ok = 0;
             return res;
         }
-
-        //TODO: Check if we receive currect response
     }
 
     uint32_t result = 0;
@@ -81,11 +78,10 @@ struct dht11_response dht11_read_response(void){
         uint32_t delta = handle_change(&current_level, &current_ts);
 
         if(current_level == 2){ // timeout :c
-            res.ok = 0;
             return res;
         }
 
-        if(i%2 == 0 && delta > 30)
+        if(i%2 && delta > 30)
             result |= (1 << (32 - i/2));
     }
 
@@ -93,11 +89,10 @@ struct dht11_response dht11_read_response(void){
         uint32_t delta = handle_change(&current_level, &current_ts);
 
         if(current_level == 2){ // timeout :c
-            res.ok = 0;
             return res;
         }
 
-        if(i%2 == 0 && delta > 30)
+        if(i%2 && delta > 30)
             checksum |= (1 << (8 - i/2));
     }
 
