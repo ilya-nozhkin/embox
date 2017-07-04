@@ -3,36 +3,40 @@
 #include <stdint.h>
 
 #include <embox/unit.h>
+#include <time.h>
 
 #include <hal/reg.h>
 #include <hal/system.h>
 
-#define SDA_PIN_NUMBER 2
-#define SCL_PIN_NUMBER 14
+#define SDA_PIN_NUMBER 4
+#define SCL_PIN_NUMBER 5
 
 struct gpio *sda;
 struct gpio *scl;
 
-#define DELAY (SYS_CLOCK/1000000*20)
+#define DELAY (SYS_CLOCK/1000000*200)
 
-static void delay() {
-	uint32_t last = 0;
+static void delay(void) {
+	usleep(1000);
+	/*uint32_t last = 0;
 	SREG_READ("ccount", last);
+	RSYNC();
 
 	while (1) {
 		uint32_t current = 0;
 		SREG_READ("ccount", current);
 		RSYNC();
 
-		if (current - last >= DELAY) {
+		if ((current - last)/160 >= 50) {
 			break;
 		}
 
 		last = current;
-	}
+	}*/
 }
 
 static inline void line_down(struct gpio *line) {
+	gpio_settings(scl, 0, GPIO_MODE_INPUT | GPIO_MODE_IN_PULL_DOWN);
 	gpio_settings(line, 0, GPIO_MODE_OUTPUT);
 	gpio_set_level(line, 0, 0);
 }
@@ -57,6 +61,8 @@ void i2c_start(void) {
 
 	line_up(scl);
 	delay();
+	
+	sleep(1);
 
 	line_down(sda);
 	delay();
@@ -72,7 +78,7 @@ void i2c_stop(void) {
 
 uint8_t i2c_send(uint8_t data) {
 	for (uint8_t i = 0; i < 8; i++) {
-		uint8_t bit = (data >> (7 - i)) & 1;
+		uint8_t bit = (data >> (7-i)) & 1;
 		line_down(scl);
 		if(!bit) {
 			line_down(sda);

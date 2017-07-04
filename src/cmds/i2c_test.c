@@ -5,16 +5,14 @@
 #include <time.h>
 
 int main(int argc, char **argv) {
+	
 	i2c_start();
+	printk("%d\n", i2c_send(0x40 << 1));
+	i2c_stop();
 	
-	struct timespec ts, ts2;
-	ts.tv_sec = 0;
-	ts.tv_nsec = 500000000;
-	printf("start\n");
-	
-	nanosleep(&ts, &ts2);
-	
-	printf("stop\n");
+	i2c_start();
+	printk("%d\n", i2c_send(0x40));
+	i2c_stop();
 
 	return 0;
 }
