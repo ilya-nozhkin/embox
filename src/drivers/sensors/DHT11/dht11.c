@@ -5,9 +5,13 @@
 #include <hal/clock.h>
 #include <hal/system.h>
 
+#include <unistd.h>
+
 #include "dht11.h"
 
 #define PIN_NUMBER OPTION_GET(NUMBER,pin_numer)
+
+#define DHT11_TIMEOUT 250
 
 static struct gpio* dht;
 static inline uint32_t timestamp(void){
@@ -16,22 +20,15 @@ static inline uint32_t timestamp(void){
     return ccount / (SYS_CLOCK / 1000000);
 }
 
-// us
-static void custom_delay(uint32_t usec){
-    uint32_t mark = timestamp();
-
-    while(1){
-        uint32_t current = timestamp();
-        if(current - mark >= usec)
-            return;
-    }
-}
-
 static gpio_mask_t wait_another_level(gpio_mask_t current_level){
+    uint32_t timeout = DHT11_TIMEOUT;
     while(1){
         gpio_mask_t level = gpio_get_level(dht, 0);
         if(level != current_level)
             return level;
+
+        if(--timeout == 0)
+            return 2;
     }
 }
 
@@ -42,7 +39,7 @@ static int dht11_start(void){
     gpio_set_level(dht, 0, 1);
 
     // Well, it is needed to avoid garbage from sensor (according to documentation)
-    // custom_delay(1 * 1000000);
+    // sleep(1);
     return 0;
 }
 
@@ -60,11 +57,19 @@ static inline uint32_t handle_change(gpio_mask_t* current_level, uint32_t* curre
 struct dht11_response dht11_read_response(void){
     gpio_settings(dht, 0, GPIO_MODE_INPUT);
 
+    struct dht11_response res;
+
     gpio_mask_t current_level = 1;
     uint32_t current_ts = timestamp();
 
     for(int i = 0; i < 2; i++){
         current_level = wait_another_level(current_level);
+
+        if(current_level == 2){ // timeout :c
+            res.ok = 0;
+            return res;
+        }
+
         //TODO: Check if we receive currect response
     }
 
@@ -75,12 +80,22 @@ struct dht11_response dht11_read_response(void){
     for(uint8_t i = 0; i < 64; i++){
         uint32_t delta = handle_change(&current_level, &current_ts);
 
+        if(current_level == 2){ // timeout :c
+            res.ok = 0;
+            return res;
+        }
+
         if(i%2 == 0 && delta > 30)
             result |= (1 << (32 - i/2));
     }
 
     for(uint8_t i = 0; i < 16; i++){
         uint32_t delta = handle_change(&current_level, &current_ts);
+
+        if(current_level == 2){ // timeout :c
+            res.ok = 0;
+            return res;
+        }
 
         if(i%2 == 0 && delta > 30)
             checksum |= (1 << (8 - i/2));
@@ -91,9 +106,8 @@ struct dht11_response dht11_read_response(void){
     uint32_t frh = (result & 0xFF0000) >> 16;
     uint32_t irh = (result & 0xFF000000) >> 24;
 
-    int ok = ((irh + frh + it + ft) & 0xFF) == checksum;
+    int ok = (((irh + frh + it + ft) & 0xFF) == checksum);
 
-    struct dht11_response res;
     res.integral_temp = it;
     res.float_temp = ft;
     res.integral_rh = irh;
@@ -106,5 +120,5 @@ struct dht11_response dht11_read_response(void){
 void dht11_request(void){
     gpio_settings(dht, 0, GPIO_MODE_OUTPUT);
     gpio_set_level(dht, 0, 0);
-    custom_delay(18 * 1000);
+    usleep(18 * 1000);
 }

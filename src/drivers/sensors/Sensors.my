@@ -1,8 +1,0 @@
-package embox.driver.sensors
-
-abstract module sensor {
-	@IncludeExport(path="drivers")
-	source "sensor.h"
-
-  depends embox.driver.gpio.esp8266
-}
