@@ -1,15 +1,18 @@
-#include <drivers/gpio.h>
+/**
+ * @file
+ * @brief   DHT11 Temp and RH sensor implementation
+ *
+ * @author  Egor Shitov
+ * @date    04.07.2017
+ */
 
-#include <embox/unit.h>
+
+#include "dht11.h"
 
 #include <hal/clock.h>
 #include <hal/system.h>
 
-#include <unistd.h>
-
-#include "dht11.h"
-
-#define PIN_NUMBER OPTION_GET(NUMBER,pin_numer)
+#include <drivers/gpio.h>
 
 #define DHT11_TIMEOUT 250
 
@@ -32,15 +35,14 @@ static gpio_mask_t wait_another_level(gpio_mask_t current_level){
     }
 }
 
-EMBOX_UNIT_INIT(dht11_start);
-static int dht11_start(void){
-    dht = gpio_by_num(PIN_NUMBER);
+void dht11_setup(uint8_t pin_number, uint8_t wait){
+    dht = gpio_by_num(pin_number);
     gpio_settings(dht, 0, GPIO_MODE_OUTPUT);
     gpio_set_level(dht, 0, 1);
 
     // Well, it is needed to avoid garbage from sensor (according to documentation)
-    // sleep(1);
-    return 0;
+    if(wait)
+        sleep(1);
 }
 
 // updates current_level and current_ts

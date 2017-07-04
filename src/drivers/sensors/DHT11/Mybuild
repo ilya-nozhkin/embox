@@ -5,7 +5,5 @@ module dht11 {
     @IncludeExport(path="drivers/sensors")
 	source "dht11.h"
 
-    option number pin_numer=5
-
     depends embox.driver.gpio.esp8266
 }
