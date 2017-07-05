@@ -25,9 +25,9 @@ static inline uint32_t wait_level_change(gpio_mask_t current_level){
 	while(1){
 		gpio_mask_t level = gpio_get_level(echo, 0);
 		if(level != current_level)
-			return level;
+			return timestamp() - time_start;
 	}
-	return timestamp() - time_start;
+
 }
 
 void sensor_setup(uint8_t trig_pin, uint8_t echo_pin){
@@ -40,8 +40,9 @@ void sensor_setup(uint8_t trig_pin, uint8_t echo_pin){
 
 void sensor_request(void){
 	gpio_set_level(trig, 0, 1);
-	usleep(14*1000);
+	usleep(12);
 	gpio_set_level(trig, 0, 0);
+
 }
 
 uint32_t sensor_response(void){
@@ -61,10 +62,10 @@ uint32_t sensor_response(void){
 			return response_time / 58;
 		}
 
-		delta = timestamp() - time_start;
-		printf("%d\n", delta);
-		if (delta >= SENSOR_TIMEOUT){
-			return 2; //Timeout
-		}
+		//	delta = timestamp() - time_start;
+		// printf("delta: %d\n", delta);
+		// if (delta >= SENSOR_TIMEOUT){
+		// 	return 2; //Timeout
+		// }
 	}
 }

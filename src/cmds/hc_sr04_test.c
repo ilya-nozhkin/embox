@@ -5,7 +5,7 @@
 
 int main(int argc, char **argv) {
 
-	sensor_setup(4,5);
+	sensor_setup(4, 5);
 	sensor_request();
 	uint32_t centimeters = sensor_response();
 
