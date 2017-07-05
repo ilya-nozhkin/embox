@@ -3,7 +3,6 @@
 #include <hal/clock.h>
 #include <hal/system.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include <drivers/gpio.h>
 
 #define SENSOR_TIMEOUT 2
@@ -22,10 +21,19 @@ static inline uint32_t timestamp(void){
 
 static inline uint32_t wait_level_change(gpio_mask_t current_level){
 	uint32_t time_start = timestamp();
+	uint32_t timer = 0;
 	while(1){
 		gpio_mask_t level = gpio_get_level(echo, 0);
-		if(level != current_level)
+		if(level != current_level){
 			return timestamp() - time_start;
+		}
+		if (timer >= 100000){
+			return 0; // timeout
+		}
+		else{
+			timer++;
+		}
+
 	}
 
 }
@@ -47,25 +55,25 @@ void sensor_request(void){
 
 uint32_t sensor_response(void){
 	uint32_t response_time;
-	uint32_t time_start = timestamp();
-	uint32_t delta = 0;
+	uint32_t timer = 0;
 	while (1){
 		gpio_mask_t level = gpio_get_level(echo, 0);
-		if(level == 1)
-		{
-			printf("level=1\n");
-			response_time = wait_level_change(1);
+		if(level == 1){
+			response_time = wait_level_change(1); // response in centimeters
 
-			if (response_time == 38*1000){
-				return 1; // No obstacles
+			if (response_time == 38 * 1000){
+				return 0; // no obstacles
 			}
 			return response_time / 58;
 		}
 
-		//	delta = timestamp() - time_start;
-		// printf("delta: %d\n", delta);
-		// if (delta >= SENSOR_TIMEOUT){
-		// 	return 2; //Timeout
-		// }
+		if (timer >= 1000){
+			return 0; // timeout
+		}
+		else{
+			timer++;
+		}
+
+
 	}
 }

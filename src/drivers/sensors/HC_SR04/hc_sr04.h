@@ -1,3 +1,12 @@
+/**
+ * @file
+ * @brief   HC-SR04 Ultrasonic
+sensor implementation
+ *
+ * @author  Denis Kuznetsov
+ * @date    05.07.2017
+ */
+
 #ifndef DRIVERS_SENSORS_HC_SR04_H_
 #define DRIVERS_SENSORS_HC_SR04_H_
 
