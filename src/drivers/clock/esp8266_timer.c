@@ -57,6 +57,7 @@ struct frc1_int {
 
 #define CLOCK_FREQUENCY PLL_FREQ
 #define EDGE_FREQUENCY OPTION_GET(NUMBER, frequency)
+#define LOAD_VALUE (CLOCK_FREQUENCY / EDGE_FREQUENCY)
 
 static struct clock_source this_clock_source;
 
@@ -71,7 +72,7 @@ static int this_init(void) {
 	FRC1_CTRL->frc1_ctrl_divisor = 0;
 	FRC1_CTRL->frc1_ctrl_autoload = 1;
 	
-	FRC1_LOAD->frc1_load_value = CLOCK_FREQUENCY / EDGE_FREQUENCY;
+	FRC1_LOAD->frc1_load_value = LOAD_VALUE;
 	clock_source_register(&this_clock_source);
 	
 	irq_attach(IRQ_NR, clock_handler, 0, &this_clock_source, "ESP8266 systick timer");
@@ -88,8 +89,7 @@ static int this_config(struct time_dev_conf * conf){
 
 static cycle_t this_read(void)
 {
-	return 0;
-	//return FRC1_COUNT->frc1_count;
+	return LOAD_VALUE - FRC1_COUNT->frc1_count;
 }
 
 static struct time_event_device this_event = {
@@ -100,7 +100,7 @@ static struct time_event_device this_event = {
 
 static struct time_counter_device this_counter = {
 	.read = this_read,
-	.cycle_hz = EDGE_FREQUENCY
+	.cycle_hz = CLOCK_FREQUENCY
 };
 
 static struct clock_source this_clock_source = {
