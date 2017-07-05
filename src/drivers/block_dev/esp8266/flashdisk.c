@@ -7,6 +7,8 @@
 #include <embox/unit.h>
 #include <fs/vfs.h>
 
+#include <mem/misc/pool.h>
+
 #include <drivers/block_dev.h>
 #include <drivers/esp8266/spi_api_impl.h>
 
@@ -14,6 +16,8 @@
 #include <util/binalign.h>
 
 #define MAX_DEV_QUANTITY OPTION_GET(NUMBER,flashdisk_quantity)
+
+POOL_DEF(flashdisk_pool,struct flashdisk,MAX_DEV_QUANTITY);
 INDEX_DEF(flashdisk_idx,0,MAX_DEV_QUANTITY);
 
 static int read_sectors(struct block_dev *bdev, char *buffer, size_t count, blkno_t blkno);
@@ -51,6 +55,10 @@ struct flashdisk *flashdisk_create(char *path, size_t size) {
 	int idx;
 	int err;
 
+    if((flashdisk = pool_alloc(&flashdisk_pool)) == NULL){
+        goto err_out;
+    }
+
 	const size_t flashdisk_size = binalign_bound(size, FLASH_MAX_SIZE);
 	const size_t sectors_n = (flashdisk_size + FLASH_BLOCK_SIZE - 1) / FLASH_BLOCK_SIZE;
 
@@ -75,6 +83,7 @@ struct flashdisk *flashdisk_create(char *path, size_t size) {
 err_free_bdev_idx:
 	index_free(&flashdisk_idx, idx);
 err_out:
+    pool_free(&flashdisk_pool, flashdisk);
 	return err_ptr(err);
 }
 
@@ -96,6 +105,9 @@ int flashdisk_delete(const char *name) {
 	nas = flashdisk_node.node->nas;
 	node_fi = nas->fi;
 	if (NULL != (flashdisk = (flashdisk_t *) block_dev(node_fi->privdata)->privdata)) {
+        if(pool_belong(&flashdisk_pool, flashdisk))
+            pool_free(&flashdisk_pool, flashdisk);
+
 		if (-1 != (idx = flashdisk_get_index((char *)name))) {
 			index_free(&flashdisk_idx, idx);
 		}

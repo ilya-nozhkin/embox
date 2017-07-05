@@ -3,11 +3,14 @@
 #include <unistd.h>
 
 #include <drivers/esp8266/spi_api_impl.h>
+#include <drivers/esp8266/flashdisk.h>
+
+#include <util/err.h>
 
 #define DATA_SIZE 14
 
 int main(int argc, char **argv) {
-    int action = atoi(argv[1]);
+    /*int action = atoi(argv[1]);
 
     char data[DATA_SIZE] = "Hello, world!";
 
@@ -24,7 +27,9 @@ int main(int argc, char **argv) {
         printf("Read result: %d\n", res);
 
         printf("Result: %s\n", data_to_read);
-    }
+    }*/
 
-	return 0;
+    flashdisk_t *fd = flashdisk_create("/dev/fd#", FLASH_BLOCK_SIZE*10);
+
+	return err(fd);
 }
