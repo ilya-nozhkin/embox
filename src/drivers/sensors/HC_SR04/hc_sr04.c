@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <drivers/gpio.h>
 
-#define SENSOR_TIMEOUT 2
 
 
 static struct gpio* trig;
