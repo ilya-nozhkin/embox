@@ -1,5 +1,17 @@
+/**
+ * @file
+ * @brief work with flash on esp8266
+ *
+ * @date 05.07.2017
+ * @author Egor Shitov
+ */
+
 #ifndef DRIVERS_BLOCKDEV_ESP8266_SPI_API_IMPL_H_
 #define DRIVERS_BLOCKDEV_ESP8266_SPI_API_IMPL_H_
+
+#define FLASH_BLOCK_SIZE    4*1024
+#define MIN_SECTOR_NUMBER   16
+#define FLASH_MAX_SIZE      2*1024*1024
 
 #include <stdint.h>
 

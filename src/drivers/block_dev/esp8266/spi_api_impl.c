@@ -1,3 +1,11 @@
+/**
+ * @file
+ * @brief work with flash on esp8266
+ *
+ * @date 05.07.2017
+ * @author Egor Shitov
+ */
+
 #include "spi_api_impl.h"
 
 SpiFlashOpResult spi_flash_erase_sector(uint16_t sector){

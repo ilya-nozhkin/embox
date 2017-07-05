@@ -5,3 +5,14 @@ module spi_api_impl{
     @IncludeExport(path="drivers/esp8266")
     source "spi_api_impl.h"
 }
+
+module flashdisk {
+    source "flashdisk.c"
+    @IncludeExport(path="drivers/esp8266")
+    source "flashdisk.h"
+
+    option number flashdisk_quantity = 4
+
+    depends embox.driver.block_dev.esp8266.spi_api_impl
+    depends embox.driver.block
+}
