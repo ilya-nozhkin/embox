@@ -7,12 +7,8 @@
 int main(int argc, char **argv) {
 	
 	i2c_start();
-	printk("%d\n", i2c_send(0x40 << 1));
-	i2c_stop();
-	
-	i2c_start();
-	printk("%d\n", i2c_send(0x40));
-	i2c_stop();
+	printk("%d\n", i2c_send(0x5C));
+	printk("%d\n", i2c_send(0x03));
 
 	return 0;
 }

@@ -8,8 +8,8 @@
 #include <hal/reg.h>
 #include <hal/system.h>
 
-#define SDA_PIN_NUMBER 4
-#define SCL_PIN_NUMBER 5
+#define SDA_PIN_NUMBER 5
+#define SCL_PIN_NUMBER 4
 
 struct gpio *sda;
 struct gpio *scl;
@@ -17,7 +17,7 @@ struct gpio *scl;
 #define DELAY (SYS_CLOCK/1000000*200)
 
 static void delay(void) {
-	usleep(1000);
+	usleep(100000);
 	/*uint32_t last = 0;
 	SREG_READ("ccount", last);
 	RSYNC();
@@ -35,17 +35,23 @@ static void delay(void) {
 	}*/
 }
 
-static inline void line_down(struct gpio *line) {
-	gpio_settings(scl, 0, GPIO_MODE_INPUT | GPIO_MODE_IN_PULL_DOWN);
-	gpio_settings(line, 0, GPIO_MODE_OUTPUT);
-	gpio_set_level(line, 0, 0);
-}
+static inline void set_levels(uint8_t sda_level, uint8_t scl_level) {
+	if (sda_level) {
+		gpio_settings(sda, 0, GPIO_MODE_INPUT | GPIO_MODE_IN_PULL_UP);
+	} else {
+		gpio_settings(sda, 0, GPIO_MODE_OUTPUT | GPIO_MODE_OUT_OPEN_DRAIN);
+		gpio_set_level(sda, 0, 0);
+	}
+	
+	if (scl_level) {
+		gpio_settings(scl, 0, GPIO_MODE_INPUT | GPIO_MODE_IN_PULL_UP);
+	} else {
+		gpio_settings(scl, 0, GPIO_MODE_OUTPUT | GPIO_MODE_OUT_OPEN_DRAIN);
+		gpio_set_level(scl, 0, 0);
+	}
+} 
 
-static inline void line_up(struct gpio *line) {
-	gpio_settings(line, 0, GPIO_MODE_INPUT | GPIO_MODE_IN_PULL_UP);
-}
-
-static inline uint8_t line_get(struct gpio *line) {
+static inline uint8_t get_level(struct gpio *line) {
 	return gpio_get_level(line, 0);
 }
 
@@ -59,77 +65,56 @@ void i2c_start(void) {
 	gpio_set_level(scl, 0, 0);
 	gpio_set_level(sda, 0, 0);
 
-	line_up(scl);
-	delay();
+	set_levels(1, 1);
 	
 	sleep(1);
 
-	line_down(sda);
+	set_levels(1, 1);
 	delay();
-	line_up(sda);
+	set_levels(0, 1);
+	delay();
 }
 
 void i2c_stop(void) {
-	line_down(sda);
+	/*line_down(sda);
 	line_up(scl);
 	delay();
-	line_up(sda);
+	line_up(sda);*/
 }
 
 uint8_t i2c_send(uint8_t data) {
-	for (uint8_t i = 0; i < 8; i++) {
-		uint8_t bit = (data >> (7-i)) & 1;
-		line_down(scl);
-		if(!bit) {
-			line_down(sda);
-		}
+	delay();
+	set_levels(1, 0);
+	delay();
+	
+	for (int8_t i = 7; i >= 0; i--) {
+		uint8_t bit = (data >> i) & 1;
+		
+		set_levels(bit, 0);
 		delay();
-		line_up(scl);
+		set_levels(bit, 1);
 		delay();
-		line_up(sda);
+		
+		if (i == 0) {
+            delay();
+        }
+		
+		set_levels(bit, 0);
+		delay();
 	}
 	
-	line_down(scl);
+	set_levels(1, 0);
 	delay();
-	line_up(scl);
+	set_levels(1, 1);
 	delay();
-	uint8_t check_bit = line_get(sda);
-	return check_bit;
+	
+	uint8_t ack = get_level(sda);
+	
+	set_levels(1, 0);
+	delay();
+	
+	return ack;
 }
 
 uint8_t i2c_receive(uint8_t last) {
-	uint8_t byte = 0;
-	uint8_t sda_level = 0;
-
-	for (uint8_t i = 0; i < 8; i++) {
-		byte = byte << 1;
-		line_down(scl);
-		delay();
-		line_up(scl);
-		delay();
-		sda_level = line_get(sda);
-
-		if (sda_level) {
-			byte |= 1;
-		}
-	}
-
-	line_down(scl);
-
-	if (last == 0)
-	{
-		line_down(sda);
-		delay();
-		line_up(scl);
-		delay();
-		line_up(sda);
-	}
-	else
-	{
-		delay();
-		line_up(scl);
-		delay();
-	}
-
-	return byte;
 }

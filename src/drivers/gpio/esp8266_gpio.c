@@ -6,8 +6,8 @@
  * @date    23.03.2017
  */
  
-//TODO: input: pull up, pull down, schmitt
-//TODO: output: push pull, open drain, alternate
+//TODO: input: schmitt
+//TODO: output: alternate
 //TODO: interruptions
  
 #include <assert.h>
@@ -32,6 +32,7 @@
 
 #define REGISTER_TO_ID(X) ((REGISTER_TO_ID_MAP >> ((uint32_t) X - GPIO_START_ADDRESS)) & 0xF)
 #define ID_TO_REGISTER(X) ((struct gpio *) (((uint32_t) ((ID_TO_REGISTER_MAP >> (X << 2)) & 0xF) << 2) + GPIO_START_ADDRESS))
+#define ID_TO_PIN(X) ((struct gpio_pin *) (GPIO_PIN_START_ADDRESS + (X << 2)))
 
 EMBOX_UNIT_INIT(esp8266_gpio_init);
 
@@ -92,6 +93,7 @@ int gpio_settings(struct gpio *gpiop, gpio_mask_t mask, int mode) {
 	assert(gpiop);
 	
 	uint8_t id = REGISTER_TO_ID(gpiop);
+	struct gpio_pin *pin = ID_TO_PIN(id);
 	
 	if (mode & GPIO_MODE_DEFAULT) {
 		uint8_t function = (DEFAULT_FUNC_MAP >> (id << 2)) & 0xF;
@@ -102,18 +104,24 @@ int gpio_settings(struct gpio *gpiop, gpio_mask_t mask, int mode) {
 		
 		if (mode & GPIO_MODE_INPUT) {
 			gpio_disable(id);
-			
-			if (mode & GPIO_MODE_IN_PULL_UP) {
-				gpiop->pullup = 1;
-			} else if (mode & GPIO_MODE_IN_PULL_DOWN) {
-				gpiop->pullup = 0;
-			}
 		} else {
 			gpio_enable(id);
 		}
 	} else if (mode & (GPIO_MODE_BY_ID)) {
 		uint8_t function = (mode >> GPIO_MODE_FUNC_ID_POS) & 0b111;
 		set_function(gpiop, function);
+	}
+	
+	if (mode & GPIO_MODE_IN_PULL_UP) {
+		gpiop->pullup = 1;
+	} else {
+		gpiop->pullup = 0;
+	}
+	
+	if (mode & GPIO_MODE_OUT_OPEN_DRAIN) {
+		pin->driver = 1;
+	} else {
+		pin->driver = 0;
 	}
 	
 	return 0;
