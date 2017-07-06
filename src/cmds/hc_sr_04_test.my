@@ -1,0 +1,18 @@
+package embox.cmd
+
+@AutoCmd
+@Cmd(name = "hc_sr04_test",
+	help = "Get distance in centimeters",
+	man = '''
+		NAME
+			hc_sr04_test
+		SYNOPSIS
+		DESCRIPTION
+		AUTHOR
+			Denis Kuznetsov
+	''')
+module hc_sr04_test {
+	source "hc_sr04_test.c"
+
+	depends embox.driver.sensors.hc_sr04
+}
