@@ -14,6 +14,8 @@
 
 #include "Defs.h"
 
+#include <drivers/servo.h>
+
 #define I2CBUFFERSIZE 50
 
 #define index_out_of_range  1
@@ -42,34 +44,6 @@ double lf, rf;
 int N, bounds[100], d, i, from, prtype;
 FILE *input;
 int i,r, n, flagstop = 1, entry, num;
-
-#ifdef ROBOT
-FILE *f1, *f2;   // файлы цифровых датчиков
-const char* JD1 = "/sys/devices/platform/da850_trik/sensor_d1";
-const char* JD2 = "/sys/devices/platform/da850_trik/sensor_d2";
-
-int rungetcommand(const char *command)
-{
-    FILE *fp;
-    int x = -1;
-    char path[100] = {'\0'};
-    
-    /* Open the command for reading. */
-    fp = popen(command, "r");
-    if (fp == NULL)
-        runtimeerr(wrong_robot_com, 0,0);
-    
-    /* Read the output a line at a time - output it. */
-    while (fgets(path, sizeof(path)-1, fp) != NULL)
-    {
-        x = strtol(path, NULL, 16);
-        printf("[%s] %d\n", path, x);
-    }
-    pclose(fp);
-    return x;                   // ??????
-}
-
-#endif
 
 static int szof(int type)
 {
