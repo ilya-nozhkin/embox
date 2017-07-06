@@ -5,9 +5,9 @@
 
 int main(int argc, char **argv) {
 
-	sensor_setup(4, 5);
-	sensor_request();
-	uint32_t centimeters = sensor_response();
+	hc_sr04_setup(4, 5);
+	hc_sr04_request();
+	uint32_t centimeters = hc_sr04_response();
 
 	printf("Cm:%d\n", centimeters);
 

@@ -2,7 +2,7 @@ package embox.cmd
 
 @AutoCmd
 @Cmd(name = "hc_sr04_test",
-	help = "Get distance in satinemeters",
+	help = "Get distance in centimeters",
 	man = '''
 		NAME
 			hc_sr04_test

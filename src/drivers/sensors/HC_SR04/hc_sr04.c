@@ -37,7 +37,7 @@ static inline uint32_t wait_level_change(gpio_mask_t current_level){
 
 }
 
-void sensor_setup(uint8_t trig_pin, uint8_t echo_pin){
+void hc_sr04_setup(uint8_t trig_pin, uint8_t echo_pin){
 	trig = gpio_by_num(trig_pin);
 	echo = gpio_by_num(echo_pin);
 	gpio_settings(trig, 0, GPIO_MODE_OUTPUT);
@@ -45,14 +45,14 @@ void sensor_setup(uint8_t trig_pin, uint8_t echo_pin){
 	gpio_settings(echo, 0, GPIO_MODE_INPUT);
 }
 
-void sensor_request(void){
+void hc_sr04_request(void){
 	gpio_set_level(trig, 0, 1);
 	usleep(12);
 	gpio_set_level(trig, 0, 0);
 
 }
 
-uint32_t sensor_response(void){
+uint32_t hc_sr04_response(void){
 	uint32_t response_time;
 	uint32_t timer = 0;
 	while (1){
