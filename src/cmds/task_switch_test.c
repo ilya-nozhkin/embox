@@ -3,18 +3,21 @@
 #include <unistd.h>
 #include <kernel/task.h>
 #include <kernel/time/timer.h>
+#include <time.h>
+
+struct timespec ts;
 
 static void *task1(void *data) {
 	for (int i = 0; i < 1000; i++) {
-		printk("task1\n");
-		for (volatile int j = 0; j < 10000; j++);
+		clock_gettime(0, &ts);
+		printk("1 %llu\n", (uint64_t) ts.tv_sec * 1000000 + ts.tv_nsec / 1000);
 	}
 }
 
 static void *task2(void *data) {
 	for (int i = 0; i < 1000; i++) {
-		printk("task2\n");
-		for (volatile int j = 0; j < 10000; j++);
+		clock_gettime(0, &ts);
+		printk("2\n", (uint64_t) ts.tv_sec * 1000000 + ts.tv_nsec / 1000);
 	}
 }
 
