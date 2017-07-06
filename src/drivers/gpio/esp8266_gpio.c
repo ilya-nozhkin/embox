@@ -95,6 +95,18 @@ int gpio_settings(struct gpio *gpiop, gpio_mask_t mask, int mode) {
 	uint8_t id = REGISTER_TO_ID(gpiop);
 	struct gpio_pin *pin = ID_TO_PIN(id);
 	
+	if (mode & GPIO_MODE_IN_PULL_UP) {
+		gpiop->pullup = 1;
+	} else {
+		gpiop->pullup = 0;
+	}
+	
+	if (mode & GPIO_MODE_OUT_OPEN_DRAIN) {
+		pin->driver = 1;
+	} else {
+		pin->driver = 0;
+	}
+	
 	if (mode & GPIO_MODE_DEFAULT) {
 		uint8_t function = (DEFAULT_FUNC_MAP >> (id << 2)) & 0xF;
 		set_function(gpiop, function);
@@ -110,18 +122,6 @@ int gpio_settings(struct gpio *gpiop, gpio_mask_t mask, int mode) {
 	} else if (mode & (GPIO_MODE_BY_ID)) {
 		uint8_t function = (mode >> GPIO_MODE_FUNC_ID_POS) & 0b111;
 		set_function(gpiop, function);
-	}
-	
-	if (mode & GPIO_MODE_IN_PULL_UP) {
-		gpiop->pullup = 1;
-	} else {
-		gpiop->pullup = 0;
-	}
-	
-	if (mode & GPIO_MODE_OUT_OPEN_DRAIN) {
-		pin->driver = 1;
-	} else {
-		pin->driver = 0;
 	}
 	
 	return 0;

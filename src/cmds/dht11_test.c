@@ -4,7 +4,7 @@
 #include <drivers/sensors/dht11.h>
 
 int main(int argc, char **argv) {
-	dht11_setup(5, 1);
+	dht11_setup(5, 0);
 
 	dht11_request();
 	struct dht11_response res = dht11_read_response();

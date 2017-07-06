@@ -7,6 +7,10 @@
 #define BYTE_ORDER    __BYTE_ORDER
 #endif
 
+#include <stdint.h>
+
 #define PLL_FREQ 80000000UL
 
 #define __PLATFORM_ARCH "xtensa"
+
+void arch_delay(uint32_t useconds);
