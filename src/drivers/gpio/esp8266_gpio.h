@@ -27,6 +27,15 @@ struct gpio {
 	esp8266_reg_t function_select2 : 1;
 };
 
+struct gpio_pin {
+	esp8266_reg_t source : 1;
+	esp8266_reg_t reserved0 : 1;
+	esp8266_reg_t driver : 1; // 1 - open drain, 0 - normal
+	esp8266_reg_t reserved1 : 4;
+	esp8266_reg_t int_type : 3;
+	esp8266_reg_t wakeup_enable : 1;
+};
+
 #define GPIO_MODE_SPEC_SECTION 0x00FF0000
 #define GPIO_MODE_DEFAULT (1 << 20)
 #define GPIO_MODE_BY_ID (1 << 21)
@@ -35,6 +44,7 @@ struct gpio {
 #define GPIO_MODE_FUNC(ID) (ID << GPIO_MODE_FUNC_ID_POS)
 
 #define GPIO_START_ADDRESS 0x60000804
+#define GPIO_PIN_START_ADDRESS 0x60000328
 
 #define MTDI_U     ((struct gpio *) (0x60000804))
 #define MTCK_U     ((struct gpio *) (0x60000808))
