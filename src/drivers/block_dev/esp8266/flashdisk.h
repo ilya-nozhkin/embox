@@ -13,8 +13,8 @@
 
 typedef struct flashdisk {
     struct block_dev    *bdev;
-    size_t              start_sector;
-    size_t              sectors;
+	size_t 				begin_block;
+    size_t              blocks;
     int                 idx;
 } flashdisk_t;
 

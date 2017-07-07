@@ -1,0 +1,7 @@
+package embox.test.flash
+
+module esp8266_spi_api_impl_test{
+	source "esp8266_spi_api_impl_test.c"
+
+	depends embox.driver.flash.esp8266.spi_api_impl
+}

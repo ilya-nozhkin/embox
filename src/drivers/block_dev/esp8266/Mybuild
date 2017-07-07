@@ -1,18 +1,14 @@
 package embox.driver.block_dev.esp8266
 
-module spi_api_impl{
-    source "spi_api_impl.c"
-    @IncludeExport(path="drivers/esp8266")
-    source "spi_api_impl.h"
-}
+module flashdisk{
+	source "flashdisk.c"
 
-module flashdisk {
-    source "flashdisk.c"
-    @IncludeExport(path="drivers/esp8266")
-    source "flashdisk.h"
+	@IncludeExport(path="drivers/block_dev/esp8266")
+	source "flashdisk.h"
 
-    option number flashdisk_quantity = 4
+	option number flashdisk_quantity = 4
 
-    depends embox.driver.block_dev.esp8266.spi_api_impl
-    depends embox.driver.block
+	depends embox.mem.pool
+	depends embox.driver.block
+	depends embox.util.indexator
 }

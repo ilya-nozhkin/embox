@@ -1,0 +1,18 @@
+package embox.fs.driver
+
+module flashfs {
+	@IncludeExport(path="fs")
+	source "flashfs.h"
+
+	source "flashfs.c"
+	option number inode_quantity=16
+	option number flashfs_descriptor_quantity=4
+	option number flashfs_file_size=16
+
+	depends embox.mem.pool
+
+	depends embox.fs.node
+	depends embox.fs.driver.repo
+
+	depends embox.driver.block_dev.esp8266.flashdisk
+}

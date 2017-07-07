@@ -13,22 +13,21 @@
 #include <drivers/esp8266/spi_api_impl.h>
 
 #include <util/indexator.h>
-#include <util/binalign.h>
 
 #define MAX_DEV_QUANTITY OPTION_GET(NUMBER,flashdisk_quantity)
 
 POOL_DEF(flashdisk_pool,struct flashdisk,MAX_DEV_QUANTITY);
 INDEX_DEF(flashdisk_idx,0,MAX_DEV_QUANTITY);
 
-static int read_sectors(struct block_dev *bdev, char *buffer, size_t count, blkno_t blkno);
-static int write_sectors(struct block_dev *bdev, char *buffer, size_t count, blkno_t blkno);
-static int ram_ioctl(struct block_dev *bdev, int cmd, void *args, size_t size);
+static int read_blocks(struct block_dev *bdev, char *buffer, size_t count, blkno_t blkno);
+static int write_blocks(struct block_dev *bdev, char *buffer, size_t count, blkno_t blkno);
+static int flash_ioctl(struct block_dev *bdev, int cmd, void *args, size_t size);
 
 block_dev_driver_t flashdisk_pio_driver = {
 	"flashdisk_drv",
-	ram_ioctl,
-	read_sectors,
-	write_sectors
+	flash_ioctl,
+	read_blocks,
+	write_blocks
 };
 
 static int flashdisk_get_index(char *path) {
@@ -56,35 +55,39 @@ struct flashdisk *flashdisk_create(char *path, size_t size) {
 	int err;
 
     if((flashdisk = pool_alloc(&flashdisk_pool)) == NULL){
-        goto err_out;
+		pool_free(&flashdisk_pool, flashdisk);
+		return err_ptr(err);
     }
 
-	const size_t flashdisk_size = binalign_bound(size, FLASH_MAX_SIZE);
-	const size_t sectors_n = (flashdisk_size + FLASH_BLOCK_SIZE - 1) / FLASH_BLOCK_SIZE;
+	if(size > FLASH_MAX_SIZE) {
+		err = E2BIG;
 
-	flashdisk->sectors = sectors_n;
-    flashdisk->start_sector = MIN_SECTOR_NUMBER;
+		pool_free(&flashdisk_pool, flashdisk);
+		return err_ptr(err);
+	}
+
+    flashdisk->begin_block = 0;
+	flashdisk->blocks = size % FLASH_BLOCK_SIZE == 0 ? size : size/FLASH_BLOCK_SIZE + 1;
 
 	if (0 > (idx = block_dev_named(path, &flashdisk_idx))) {
 		err = -idx;
-		goto err_out;
+
+		pool_free(&flashdisk_pool, flashdisk);
+		return err_ptr(err);
 	}
 
 	flashdisk->bdev = block_dev_create(path, &flashdisk_pio_driver, flashdisk);
 	if (NULL == flashdisk->bdev) {
 		err = EIO;
-		goto err_free_bdev_idx;
+
+		index_free(&flashdisk_idx, idx);
+		pool_free(&flashdisk_pool, flashdisk);
+		return err_ptr(err);
 	}
 
-	flashdisk->bdev->size = flashdisk_size;
+	flashdisk->bdev->size = size;
 	flashdisk->bdev->block_size = FLASH_BLOCK_SIZE;
 	return flashdisk;
-
-err_free_bdev_idx:
-	index_free(&flashdisk_idx, idx);
-err_out:
-    pool_free(&flashdisk_pool, flashdisk);
-	return err_ptr(err);
 }
 
 int flashdisk_delete(const char *name) {
@@ -117,34 +120,50 @@ int flashdisk_delete(const char *name) {
 	return 0;
 }
 
-static int read_sectors(struct block_dev *bdev,
+static int read_blocks(struct block_dev *bdev,
 		char *buffer, size_t count, blkno_t blkno) {
 	flashdisk_t *flashdisk = (flashdisk_t *) bdev->privdata;
-	size_t read_addr = (flashdisk->start_sector + blkno) * bdev->block_size;
+	size_t block_size = bdev->block_size;
+	size_t read_addr = (flashdisk->begin_block + blkno) * block_size;
 
-    spi_flash_read(read_addr, buffer, count);
+	size_t done = 0; // read blocks
+	for(; done < count; done++){
+		size_t offset = done * block_size;
+		SpiFlashOpResult res = spi_flash_read(read_addr + offset, buffer + offset, block_size);
+		if(res)
+			break;
+	}
+
+	return done;
+}
+
+static int write_blocks(struct block_dev *bdev,
+		char *buffer, size_t count, blkno_t blkno) {
+	flashdisk_t *flashdisk = (flashdisk_t *) bdev->privdata;
+	size_t block_size = bdev->block_size;
+	size_t write_addr = (flashdisk->begin_block + blkno) * block_size;
+
+	size_t done = 0; // written blocks
+
+	for(; done < count; done++){
+		size_t offset = done * block_size;
+		SpiFlashOpResult res = spi_flash_write(write_addr + offset, buffer + offset, block_size);
+		if(res)
+			break;
+	}
 
 	return count;
 }
 
-static int write_sectors(struct block_dev *bdev,
-		char *buffer, size_t count, blkno_t blkno) {
-	flashdisk_t *flashdisk = (flashdisk_t *) bdev->privdata;
-	size_t write_addr = (flashdisk->start_sector + blkno) * bdev->block_size;
-
-    spi_flash_write(write_addr, buffer, count);
-	return count;
-}
-
-static int ram_ioctl(struct block_dev *bdev, int cmd, void *args, size_t size) {
+static int flash_ioctl(struct block_dev *bdev, int cmd, void *args, size_t size) {
     flashdisk_t *flashdisk = (flashdisk_t *) bdev->privdata;
 
 	switch (cmd) {
 	case IOCTL_GETDEVSIZE:
-		return flashdisk->sectors;
+		return flashdisk->blocks;
 
 	case IOCTL_GETBLKSIZE:
-		return FLASH_BLOCK_SIZE;
+		return bdev->block_size;
 	}
 	return -ENOSYS;
 }

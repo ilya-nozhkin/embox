@@ -83,7 +83,9 @@ struct block_dev *block_dev_create(char *path, void *driver, void *privdata) {
 
 	vfs_get_root_path(&root);
 
-	if (0 != vfs_create(&root, path, S_IFBLK | S_IRALL | S_IWALL, &node)) {
+	int t = 0;
+	if (0 != (t = vfs_create(&root, path, S_IFBLK | S_IRALL | S_IWALL, &node))) {
+		printf("vfs_create %d\n", t);
 		block_dev_free(bdev);
 		return NULL;
 	}
@@ -108,4 +110,3 @@ int block_dev_destroy(void *dev) {
 
 	return 0;
 }
-
