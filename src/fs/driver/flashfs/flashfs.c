@@ -16,12 +16,14 @@
 
 #include <util/err.h>
 #include <util/indexator.h>
+#include <util/math.h>
 
 #include <mem/misc/pool.h>
 
 #include <embox/unit.h>
+#include <drivers/esp8266/spi_api_impl.h>
 #include <drivers/block_dev.h>
-#include <drivers/esp8266/flashdisk.h>
+#include <drivers/block_dev/esp8266/flashdisk.h>
 
 /* flashfs filesystem description pool */
 POOL_DEF(flashfs_fs_pool, struct flashfs_fs_info, OPTION_GET(NUMBER,flashfs_descriptor_quantity));
@@ -36,11 +38,29 @@ INDEX_DEF(flashfs_file_idx,0,OPTION_GET(NUMBER,inode_quantity));
 #define FILESYSTEM_SIZE (MAX_FILE_SIZE * OPTION_GET(NUMBER,inode_quantity))
 
 #define FLASHFS_DEV "/dev/ffs#"
-#define FLASHFS_DIR "/"
+#define FLASHFS_DIR "/flash"
 
+static char sector_buff[FLASH_BLOCK_SIZE];
 static char flashfs_dev[] = FLASHFS_DEV;
 
 static int flashfs_format(void *dev){
+	node_t *dev_node;
+	struct nas *dev_nas;
+	struct node_fi *dev_fi;
+
+	if (NULL == (dev_node = dev)) {
+		return -ENODEV;/*device not found*/
+	}
+
+	if(!node_is_block_dev(dev_node)) {
+		return -ENODEV;
+	}
+	dev_nas = dev_node->nas;
+	dev_fi = dev_nas->fi;
+
+	if(MAX_FILE_SIZE > block_dev(dev_fi->privdata)->size) {
+		return -ENOSPC;
+	}
 	return 0;
 }
 
@@ -76,6 +96,7 @@ static int flashfs_mount(void *dev, void *dir){
 
 	fsi->block_per_file = MAX_FILE_SIZE / FLASH_BLOCK_SIZE;
 	fsi->block_size = FLASH_BLOCK_SIZE;
+
 	fsi->numblocks = block_dev(dev_fi->privdata)->size / FLASH_BLOCK_SIZE;
 
 	/* allocate this directory info */
@@ -170,10 +191,200 @@ static int flashfs_write_sector(struct nas *nas, char *buffer,
 	}
 }
 
-/*static size_t flashfs_read(struct file_desc *desc, void *buf, size_t size){
+static size_t flashfs_read(struct file_desc *desc, void *buf, size_t size){
 	struct nas *nas = desc->node->nas;
 	struct flashfs_fs_info *fsi = nas->fs->fsi;
+	void *pbuf, *ebuf;
 
+	pbuf = buf;
+	ebuf = buf + min(nas->fi->ni.size - desc->cursor, size);
+	while (pbuf < ebuf) {
+		blkno_t blk = desc->cursor / fsi->block_size;
+		int offset = desc->cursor % fsi->block_size;
+		int read_n;
 
+		assert (blk < fsi->block_per_file);
+		assert (blk < fsi->numblocks);
+
+		assert(sizeof(sector_buff) == fsi->block_size);
+		if(1 != flashfs_read_sector(nas, sector_buff, 1, blk)) {
+			break;
+		}
+
+		read_n = min(fsi->block_size - offset, ebuf - pbuf);
+		memcpy (pbuf, sector_buff + offset, read_n);
+
+		desc->cursor += read_n;
+		pbuf += read_n;
+	}
+
+	return pbuf - buf;
 }
-static size_t flashfs_write(struct file_desc *desc, void *buf, size_t size)*/
+
+static size_t flashfs_write(struct file_desc *desc, void *buf, size_t size){
+	flashfs_file_info_t *fi;
+	size_t len;
+	size_t current, cnt;
+	uint32_t end_pointer;
+	blkno_t blk;
+	uint32_t bytecount;
+	uint32_t start_block;
+	struct nas *nas;
+	struct flashfs_fs_info *fsi;
+
+	nas = desc->node->nas;
+	fi = (flashfs_file_info_t *)nas->fi->privdata;
+	fsi = nas->fs->fsi;
+
+	bytecount = 0;
+
+	fi->pointer = desc->cursor;
+	len = size;
+	end_pointer = fi->pointer + len;
+	start_block = fi->index * fsi->block_per_file;
+
+	while(1) {
+		if(0 == fsi->block_size) {
+			break;
+		}
+		blk = fi->pointer / fsi->block_size;
+		/* check if block over the file */
+		if(blk >= fsi->block_per_file) {
+			bytecount = 0;
+			break;
+		}
+		else {
+			blk += start_block;
+		}
+		/* calculate pointer in scratch buffer */
+		current = fi->pointer % fsi->block_size;
+
+		/* set the counter how many bytes written in block */
+		if(end_pointer - fi->pointer > fsi->block_size) {
+			if(current) {
+				cnt = fsi->block_size - current;
+			}
+			else {
+				cnt = fsi->block_size;
+			}
+		}
+		else {
+			cnt = end_pointer - fi->pointer;
+			/* over the block ? */
+			if((current + cnt) > fsi->block_size) {
+				cnt -= (current + cnt) % fsi->block_size;
+			}
+		}
+
+		/* one 4096-bytes block read operation */
+		if(1 != flashfs_read_sector(nas, sector_buff, 1, blk)) {
+			bytecount = 0;
+			break;
+		}
+		/* set new data in block */
+		memcpy (sector_buff + current, buf, cnt);
+
+		/* write one block to device */
+		if(1 != flashfs_write_sector(nas, sector_buff, 1, blk)) {
+			bytecount = 0;
+			break;
+		}
+		bytecount += cnt;
+		buf = (void*) (((uint8_t*) buf) + cnt);
+		/* shift the pointer */
+		fi->pointer += cnt;
+		if(end_pointer <= fi->pointer) {
+			break;
+		}
+	}
+	/* if we write over the last EOF, set new filelen */
+	if (nas->fi->ni.size < fi->pointer) {
+		nas->fi->ni.size = fi->pointer;
+	}
+
+	desc->cursor = fi->pointer;
+	return bytecount;
+}
+
+static flashfs_file_info_t *flashfs_create_file(struct nas *nas){
+	flashfs_file_info_t *fi;
+	size_t fi_index;
+
+	fi = pool_alloc(&flashfs_file_pool);
+	if(!fi){
+		return NULL;
+	}
+
+	fi_index = index_alloc(&flashfs_file_idx, INDEX_MIN);
+	if(fi_index == INDEX_NONE){
+		pool_free(&flashfs_file_pool, fi);
+		return NULL;
+	}
+
+	fi->index = fi_index;
+	nas->fi->ni.size = fi->pointer = 0;
+
+	return fi;
+}
+
+static int flashfs_create(struct node *parent_node, struct node* node){
+	struct nas *nas;
+
+	nas = node->nas;
+
+	if(!node_is_directory(node)){
+		if(!(nas->fi->privdata = flashfs_create_file(nas))){
+			return -ENOMEM;
+		}
+	}
+
+	nas->fs = parent_node->nas->fs;
+
+	return 0;
+}
+
+static int flashfs_delete(struct node *node) {
+	struct flashfs_file_info *fi;
+	struct nas *nas;
+
+	nas = node->nas;
+	fi = nas->fi->privdata;
+
+	if(!node_is_directory(node)) {
+		index_free(&flashfs_file_idx, fi->index);
+		pool_free(&flashfs_file_pool, fi);
+	}
+
+	vfs_del_leaf(node);
+
+	return 0;
+}
+
+static int flashfs_truncate(struct node *node, off_t length){
+	struct nas *nas = node->nas;
+
+	if(length > MAX_FILE_SIZE){
+		return -EFBIG;
+	}
+
+	nas->fi->ni.size = length;
+
+	return 0;
+}
+
+static struct fsop_desc flashfs_fsop = {
+	.init = flashfs_init,
+	.format = flashfs_format,
+	.mount = flashfs_mount,
+	.create_node = flashfs_create,
+	.delete_node = flashfs_delete,
+	.truncate = flashfs_truncate,
+};
+
+static struct fs_driver flashfs_driver = {
+	.name = "flashfs",
+	.file_op = &flashfs_fop,
+	.fsop = &flashfs_fsop
+};
+
+DECLARE_FILE_SYSTEM_DRIVER(flashfs_driver);

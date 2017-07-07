@@ -25,11 +25,11 @@ typedef struct flashfs_fs_info {
 	uint32_t numblocks;			/* number of block in volume */
 	uint32_t block_size;		/* size of block */
 	uint32_t block_per_file;	/* max number of blocks filesize*/
-} ramfs_fs_info_t;
+} flashfs_fs_info_t;
 
 typedef struct flashfs_file_info {
 	int     index;		        /* number of file in FS*/
-	//int     mode;				/* mode in which this file was opened */
+	int     mode;				/* mode in which this file was opened */
 	uint32_t pointer;			/* current (BYTE) pointer */
-
+} flashfs_file_info_t;
 #endif /* FS_DRIVER_FLASHFS_H_ */
