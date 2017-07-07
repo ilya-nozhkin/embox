@@ -12,8 +12,7 @@ int main(int argc, char **argv) {
 
 	printf("Error: %d\n", e);
 
-	if(!e)
-		flashdisk_delete(fs);
+	flashdisk_delete(fs);
 
     return 0;
 }

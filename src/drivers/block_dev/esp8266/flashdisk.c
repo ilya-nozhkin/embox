@@ -34,12 +34,9 @@ static int flashdisk_get_index(char *path) {
 	char *dev_name;
 	int idx;
 
-	if(NULL == (dev_name = strstr(path, "flash"))) {
-		return -1;
-	}
-	dev_name += sizeof("flash");
+	dev_name = path + strlen(path) - 1;
 
-	if(!isdigit((int)dev_name[0])) {
+	if(!isdigit(dev_name[0])){
 		return -1;
 	}
 
@@ -108,8 +105,7 @@ int flashdisk_delete(const char *name) {
 	nas = flashdisk_node.node->nas;
 	node_fi = nas->fi;
 	if (NULL != (flashdisk = (flashdisk_t *) block_dev(node_fi->privdata)->privdata)) {
-        if(pool_belong(&flashdisk_pool, flashdisk))
-            pool_free(&flashdisk_pool, flashdisk);
+        pool_free(&flashdisk_pool, flashdisk);
 
 		if (-1 != (idx = flashdisk_get_index((char *)name))) {
 			index_free(&flashdisk_idx, idx);

@@ -14,11 +14,14 @@
 
 EMBOX_TEST_SUITE("esp8266/flashdisk test");
 
-#define FS_DEV  "/fd"
+#define FS_DEV  "/dev/flash#"
 #define FS_BLOCKS  124
 
 TEST_CASE("Create and delete flash") {
-	test_assert_zero(err(flashdisk_create(FS_DEV, FS_BLOCKS * FLASH_BLOCK_SIZE)));
 
-	test_assert_zero(flashdisk_delete(FS_DEV));
+	char path[] = FS_DEV;
+
+	test_assert_zero(err(flashdisk_create(path, FS_BLOCKS * FLASH_BLOCK_SIZE)));
+
+	test_assert_zero(flashdisk_delete(path));
 }
