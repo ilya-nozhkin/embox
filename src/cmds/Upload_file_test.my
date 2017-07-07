@@ -1,0 +1,17 @@
+package embox.cmd
+
+@AutoCmd
+@Cmd(name = "upload_file_test",
+	help = "uploads file",
+	man = '''
+		NAME
+			upload_file_test
+		SYNOPSIS
+            upload_file_test filename
+		DESCRIPTION
+		AUTHOR
+			Egor Shitov
+	''')
+module upload_file_test {
+	source "upload_file_test.c"
+}

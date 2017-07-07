@@ -64,4 +64,3 @@ int block_dev_named(char *name, struct indexator *indexator) {
 
 	return (int)idx;
 }
-

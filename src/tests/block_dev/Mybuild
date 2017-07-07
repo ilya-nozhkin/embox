@@ -21,3 +21,9 @@ module bdev_base_test {
 	source "bdev_base_test.c"
 	depends embox.fs.driver.devfs
 }
+
+module flashdisk_test {
+	source "flashdisk_test.c"
+
+	depends embox.driver.block_dev.esp8266.flashdisk
+}
