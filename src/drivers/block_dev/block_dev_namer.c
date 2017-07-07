@@ -62,7 +62,5 @@ int block_dev_named(char *name, struct indexator *indexator) {
 
 	block_dev_select_name(name, (int)idx);
 
-	printf("bdev name: %s\n", name);
-
 	return (int)idx;
 }
