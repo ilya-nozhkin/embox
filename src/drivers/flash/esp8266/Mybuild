@@ -1,14 +1,7 @@
 package embox.driver.flash.esp8266
 
 module spi_api_impl{
-    source "spi_api_impl.c"
-    @IncludeExport(path="drivers/esp8266")
-    source "spi_api_impl.h"
-}
-
-module esp8266_flash{
-	source "esp8266_flash.c"
-
-	depends spi_api_impl
-	depends embox.driver.flash.lib
+	source "spi_api_impl.c"
+	@IncludeExport(path="drivers/esp8266")
+	source "spi_api_impl.h"
 }

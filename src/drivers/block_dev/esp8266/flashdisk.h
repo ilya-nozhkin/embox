@@ -12,10 +12,10 @@
 #include <stddef.h>
 
 typedef struct flashdisk {
-    struct block_dev    *bdev;
-	size_t 				begin_block;
-    size_t              blocks;
-    int                 idx;
+	struct block_dev	*bdev;
+	size_t				begin_block;
+	size_t				blocks;
+	int					idx;
 } flashdisk_t;
 
 struct flashdisk *flashdisk_create(char *path, size_t size);

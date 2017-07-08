@@ -18,9 +18,9 @@
 #include <stdint.h>
 
 typedef enum{
-    SPI_FLASH_RESULT_OK,				// esp8266-documented
-    SPI_FLASH_RESULT_ERR,				// esp8266-documented
-    SPI_FLASH_RESULT_TIMEOUT,			// esp8266-documented
+	SPI_FLASH_RESULT_OK,				// esp8266-documented
+	SPI_FLASH_RESULT_ERR,				// esp8266-documented
+	SPI_FLASH_RESULT_TIMEOUT,			// esp8266-documented
 	SPI_FLASH_RESULT_UNALIGNED_ADDR, 	// happens when (addr & 3) != 0
 	SPI_FLASH_RESULT_OVERSIZE			// happens when addr starts in one sector and addr+size ends in another one
 } SpiFlashOpResult;

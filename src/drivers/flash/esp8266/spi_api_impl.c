@@ -20,36 +20,36 @@ static inline uint8_t is_oversize(uint32_t _addr, uint32_t size){
 }
 
 SpiFlashOpResult spi_flash_erase_sector(uint16_t sector){
-    SpiFlashOpResult result = SPIEraseSector(sector + MIN_SECTOR_NUMBER);
-    return result;
+	SpiFlashOpResult result = SPIEraseSector(sector + MIN_SECTOR_NUMBER);
+	return result;
 }
 
 SpiFlashOpResult spi_flash_write(uint32_t dest_addr, uint32_t *src_addr, uint32_t size){
 	uint32_t _dest_addr = dest_addr + MIN_SECTOR_NUMBER*FLASH_SECTOR_SIZE;
 
-    if(!src_addr)
-        return SPI_FLASH_RESULT_ERR;
+	if(!src_addr)
+		return SPI_FLASH_RESULT_ERR;
 
-    /* We should align it like 0x...000 */
-    if(size & 3){
-        int new_size = (size | 3) + 1;
+	/* We should align it like 0x...000 */
+	if(size & 3){
+		int new_size = (size | 3) + 1;
 
 		if(is_oversize(_dest_addr, new_size)){
 			return SPI_FLASH_RESULT_OVERSIZE;
 		}
 
-        void *tmp = malloc(new_size);
-        memcpy(tmp, src_addr, size);
+		void *tmp = malloc(new_size);
+		memcpy(tmp, src_addr, size);
 
-        SpiFlashOpResult res = SPIWrite(_dest_addr, tmp, new_size);
+		SpiFlashOpResult res = SPIWrite(_dest_addr, tmp, new_size);
 
 		free(tmp);
 		return res;
-    } else {
+	} else {
 		if(is_oversize(_dest_addr, size))
 			return SPI_FLASH_RESULT_OVERSIZE;
 
-        return SPIWrite(_dest_addr, src_addr, size);
+		return SPIWrite(_dest_addr, src_addr, size);
 	}
 
 }
@@ -57,11 +57,11 @@ SpiFlashOpResult spi_flash_write(uint32_t dest_addr, uint32_t *src_addr, uint32_
 SpiFlashOpResult spi_flash_read(uint32_t src_addr, uint32_t* dest_addr, uint32_t size){
 	uint32_t _src_addr = src_addr + MIN_SECTOR_NUMBER*FLASH_SECTOR_SIZE;
 
-    if(!dest_addr)
-        return SPI_FLASH_RESULT_ERR;
+	if(!dest_addr)
+		return SPI_FLASH_RESULT_ERR;
 
 	if(is_oversize(_src_addr, size))
 		return SPI_FLASH_RESULT_OVERSIZE;
 
-    return SPIRead(_src_addr, dest_addr, size);
+	return SPIRead(_src_addr, dest_addr, size);
 }

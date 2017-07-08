@@ -37,7 +37,7 @@ static int flashdisk_get_index(char *path) {
 	dev_name = path + strlen(path) - 1;
 
 	if(!isdigit(dev_name[0])){
-		return -1;
+			return -1;
 	}
 
 	sscanf(dev_name, "%d", &idx);
@@ -47,14 +47,14 @@ static int flashdisk_get_index(char *path) {
 
 /* XXX not stores index if path have no index placeholder, like * or # */
 struct flashdisk *flashdisk_create(char *path, size_t size) {
-    struct flashdisk *flashdisk;
+	struct flashdisk *flashdisk;
 	int idx;
 	int err;
 
-    if((flashdisk = pool_alloc(&flashdisk_pool)) == NULL){
+	if((flashdisk = pool_alloc(&flashdisk_pool)) == NULL){
 		pool_free(&flashdisk_pool, flashdisk);
 		return err_ptr(err);
-    }
+	}
 
 	if(size > FLASH_MAX_SIZE) {
 		err = E2BIG;
@@ -63,7 +63,7 @@ struct flashdisk *flashdisk_create(char *path, size_t size) {
 		return err_ptr(err);
 	}
 
-    flashdisk->begin_block = 0;
+	flashdisk->begin_block = 0;
 	flashdisk->blocks = size % FLASH_BLOCK_SIZE == 0 ? size : size/FLASH_BLOCK_SIZE + 1;
 
 	if (0 > (idx = block_dev_named(path, &flashdisk_idx))) {
@@ -89,7 +89,7 @@ struct flashdisk *flashdisk_create(char *path, size_t size) {
 
 int flashdisk_delete(const char *name) {
 	struct path flashdisk_node;
-    flashdisk_t *flashdisk;
+	flashdisk_t *flashdisk;
 	struct nas *nas;
 	struct node_fi *node_fi;
 	int idx;
@@ -105,7 +105,7 @@ int flashdisk_delete(const char *name) {
 	nas = flashdisk_node.node->nas;
 	node_fi = nas->fi;
 	if (NULL != (flashdisk = (flashdisk_t *) block_dev(node_fi->privdata)->privdata)) {
-        pool_free(&flashdisk_pool, flashdisk);
+		pool_free(&flashdisk_pool, flashdisk);
 
 		if (-1 != (idx = flashdisk_get_index((char *)name))) {
 			index_free(&flashdisk_idx, idx);
@@ -152,7 +152,7 @@ static int write_blocks(struct block_dev *bdev,
 }
 
 static int flash_ioctl(struct block_dev *bdev, int cmd, void *args, size_t size) {
-    flashdisk_t *flashdisk = (flashdisk_t *) bdev->privdata;
+	flashdisk_t *flashdisk = (flashdisk_t *) bdev->privdata;
 
 	switch (cmd) {
 	case IOCTL_GETDEVSIZE:
