@@ -8,7 +8,7 @@
 
 #include "spi_api_impl.h"
 
-#include <embox/unit.h>
+static char buffer[FLASH_BLOCK_SIZE];
 
 // Let's make 'addr' is for converted addr, '_addr' is for not
 static inline uint32_t get_sector_by_addr(uint32_t _addr){
@@ -32,19 +32,22 @@ SpiFlashOpResult spi_flash_write(uint32_t dest_addr, uint32_t *src_addr, uint32_
 
 	/* We should align it like 0x...000 */
 	if(size & 3){
-		int new_size = (size | 3) + 1;
+		// int new_size = (size | 3) + 1;
+		//
+		// if(is_oversize(_dest_addr, new_size)){
+		// 	return SPI_FLASH_RESULT_OVERSIZE;
+		// }
+		//
+		// void *tmp = malloc(new_size);
+		// memcpy(tmp, src_addr, size);
+		//
+		// SpiFlashOpResult res = SPIWrite(_dest_addr, tmp, new_size);
+		//
+		// free(tmp);
+		// return res;
 
-		if(is_oversize(_dest_addr, new_size)){
-			return SPI_FLASH_RESULT_OVERSIZE;
-		}
-
-		void *tmp = malloc(new_size);
-		memcpy(tmp, src_addr, size);
-
-		SpiFlashOpResult res = SPIWrite(_dest_addr, tmp, new_size);
-
-		free(tmp);
-		return res;
+		// We don't need align it right there (at this moment :p)
+		return SPI_FLASH_RESULT_UNALIGNED_ADDR;
 	} else {
 		if(is_oversize(_dest_addr, size))
 			return SPI_FLASH_RESULT_OVERSIZE;

@@ -15,6 +15,7 @@
 #include <util/indexator.h>
 
 #define MAX_DEV_QUANTITY OPTION_GET(NUMBER,flashdisk_quantity)
+#define SIZE_PER_DRVIER (FLASH_MAX_SIZE/MAX_DEV_QUANTITY)
 
 POOL_DEF(flashdisk_pool,struct flashdisk,MAX_DEV_QUANTITY);
 INDEX_DEF(flashdisk_idx,0,MAX_DEV_QUANTITY);
@@ -52,19 +53,15 @@ struct flashdisk *flashdisk_create(char *path, size_t size) {
 	int err;
 
 	if((flashdisk = pool_alloc(&flashdisk_pool)) == NULL){
-		pool_free(&flashdisk_pool, flashdisk);
 		return err_ptr(err);
 	}
 
-	if(size > FLASH_MAX_SIZE) {
+	if(size > SIZE_PER_DRVIER) {
 		err = E2BIG;
 
 		pool_free(&flashdisk_pool, flashdisk);
 		return err_ptr(err);
 	}
-
-	flashdisk->begin_block = 0; //TODO: begin_block must depend on idx
-	flashdisk->blocks = size % FLASH_BLOCK_SIZE == 0 ? size : (size + FLASH_BLOCK_SIZE - 1)/FLASH_BLOCK_SIZE;
 
 	if (0 > (idx = block_dev_named(path, &flashdisk_idx))) {
 		err = -idx;
@@ -72,6 +69,9 @@ struct flashdisk *flashdisk_create(char *path, size_t size) {
 		pool_free(&flashdisk_pool, flashdisk);
 		return err_ptr(err);
 	}
+
+	flashdisk->begin_block = idx * (SIZE_PER_DRVIER / FLASH_BLOCK_SIZE);
+	flashdisk->blocks = size % FLASH_BLOCK_SIZE == 0 ? size : (size + FLASH_BLOCK_SIZE - 1)/FLASH_BLOCK_SIZE;
 
 	flashdisk->bdev = block_dev_create(path, &flashdisk_pio_driver, flashdisk);
 	if (NULL == flashdisk->bdev) {

@@ -9,10 +9,9 @@
 #ifndef DRIVERS_BLOCKDEV_ESP8266_SPI_API_IMPL_H_
 #define DRIVERS_BLOCKDEV_ESP8266_SPI_API_IMPL_H_
 
-#define FLASH_BLOCK_SIZE 	8				// block size 8Bytes
-#define FLASH_SECTOR_SIZE   (4*1024)		// sector size 4KBytes
-#define FLASH_MAX_SIZE      \
-					(FLASH_SECTOR_SIZE*64)	// actually 4MBytes
+#define FLASH_BLOCK_SIZE 	16				// block size (bytes)
+#define FLASH_SECTOR_SIZE   (4*1024)		// sector size 4KBytes (esp8266-documented)
+#define FLASH_MAX_SIZE      (2*1024*1024)	// actually 4MBytes (esp8266-documented)
 #define MIN_SECTOR_NUMBER   16				// reserved for executable code
 
 #include <stdint.h>

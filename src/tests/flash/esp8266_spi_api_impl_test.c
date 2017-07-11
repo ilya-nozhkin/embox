@@ -10,11 +10,11 @@
 #include <embox/test.h>
 #include <stdlib.h>
 
-#define ESP8266_SPI_TEST_DATA_SIZE 14
+#define ESP8266_SPI_TEST_DATA_SIZE 16
 
 EMBOX_TEST_SUITE("esp8266 flash ops test");
 
-static char data[ESP8266_SPI_TEST_DATA_SIZE] = "Hello, world!";
+static char data[ESP8266_SPI_TEST_DATA_SIZE] = "Hello, world!12";
 
 TEST_CASE("Write/read to/from flash") {
 	char data_to_read[ESP8266_SPI_TEST_DATA_SIZE] = {0};
