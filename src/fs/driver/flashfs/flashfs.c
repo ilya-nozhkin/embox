@@ -193,11 +193,20 @@ static int flashfs_write_sector(struct nas *nas, char *buffer,
 
 static size_t flashfs_read(struct file_desc *desc, void *buf, size_t size){
 	struct nas *nas = desc->node->nas;
-	struct flashfs_fs_info *fsi = nas->fs->fsi;
+	flashfs_fs_info_t *fsi = nas->fs->fsi;
+	flashfs_file_info_t *fi = nas->fi->privdata;
+	uint32_t start_block = fi->index * fsi->block_per_file;
+
 	void *pbuf, *ebuf;
 
 	pbuf = buf;
 	ebuf = buf + min(nas->fi->ni.size - desc->cursor, size);
+
+	size_t counter = 0;
+
+	char debug_buff[FLASH_BLOCK_SIZE+1];
+	debug_buff[FLASH_BLOCK_SIZE] = '\0';
+
 	while (pbuf < ebuf) {
 		blkno_t blk = desc->cursor / fsi->block_size;
 		int offset = desc->cursor % fsi->block_size;
@@ -207,15 +216,22 @@ static size_t flashfs_read(struct file_desc *desc, void *buf, size_t size){
 		assert (blk < fsi->numblocks);
 
 		assert(sizeof(sector_buff) == fsi->block_size);
-		if(1 != flashfs_read_sector(nas, sector_buff, 1, blk)) {
+
+		blkno_t blk_to_read = blk + start_block;
+
+		if(1 != flashfs_read_sector(nas, sector_buff, 1, blk_to_read)) {
 			break;
 		}
+
+		memcpy(debug_buff, sector_buff, FLASH_BLOCK_SIZE);
 
 		read_n = min(fsi->block_size - offset, ebuf - pbuf);
 		memcpy (pbuf, sector_buff + offset, read_n);
 
 		desc->cursor += read_n;
 		pbuf += read_n;
+
+		counter++;
 	}
 
 	return pbuf - buf;
@@ -242,6 +258,7 @@ static size_t flashfs_write(struct file_desc *desc, void *buf, size_t size){
 	len = size;
 	end_pointer = fi->pointer + len;
 	start_block = fi->index * fsi->block_per_file;
+
 
 	while(1) {
 		if(0 == fsi->block_size) {

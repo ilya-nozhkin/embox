@@ -63,8 +63,8 @@ struct flashdisk *flashdisk_create(char *path, size_t size) {
 		return err_ptr(err);
 	}
 
-	flashdisk->begin_block = 0;
-	flashdisk->blocks = size % FLASH_BLOCK_SIZE == 0 ? size : size/FLASH_BLOCK_SIZE + 1;
+	flashdisk->begin_block = 0; //TODO: begin_block must depend on idx
+	flashdisk->blocks = size % FLASH_BLOCK_SIZE == 0 ? size : (size + FLASH_BLOCK_SIZE - 1)/FLASH_BLOCK_SIZE;
 
 	if (0 > (idx = block_dev_named(path, &flashdisk_idx))) {
 		err = -idx;
@@ -122,15 +122,9 @@ static int read_blocks(struct block_dev *bdev,
 	size_t block_size = bdev->block_size;
 	size_t read_addr = (flashdisk->begin_block + blkno) * block_size;
 
-	size_t done = 0; // read blocks
-	for(; done < count; done++){
-		size_t offset = done * block_size;
-		SpiFlashOpResult res = spi_flash_read(read_addr + offset, buffer + offset, block_size);
-		if(res)
-			break;
-	}
+	spi_flash_read(read_addr, buffer, count);
 
-	return done;
+	return count;
 }
 
 static int write_blocks(struct block_dev *bdev,
@@ -139,14 +133,7 @@ static int write_blocks(struct block_dev *bdev,
 	size_t block_size = bdev->block_size;
 	size_t write_addr = (flashdisk->begin_block + blkno) * block_size;
 
-	size_t done = 0; // written blocks
-
-	for(; done < count; done++){
-		size_t offset = done * block_size;
-		SpiFlashOpResult res = spi_flash_write(write_addr + offset, buffer + offset, block_size);
-		if(res)
-			break;
-	}
+	spi_flash_write(write_addr, buffer, count);
 
 	return count;
 }

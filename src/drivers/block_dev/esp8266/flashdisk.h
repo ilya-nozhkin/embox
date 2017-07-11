@@ -19,7 +19,6 @@ typedef struct flashdisk {
 } flashdisk_t;
 
 struct flashdisk *flashdisk_create(char *path, size_t size);
-struct flashdisk *flashdisk_get_param(char *path);
 int flashdisk_delete(const char *name);
 
 #endif /* DRIVERS_BLOCKDEV_ESP8266_FLASHDISK_H_ */

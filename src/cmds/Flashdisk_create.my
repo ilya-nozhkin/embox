@@ -1,0 +1,18 @@
+package embox.cmd
+
+@AutoCmd
+@Cmd(name = "flashdisk_create",
+	help = "Create flashdisk dev",
+	man = '''
+		NAME
+			flashdisk_create
+		SYNOPSIS
+		DESCRIPTION
+		AUTHOR
+			Egor Shitov
+	''')
+module flashdisk_create {
+	source "flashdisk_create.c"
+
+	depends embox.driver.block_dev.esp8266.flashdisk
+}

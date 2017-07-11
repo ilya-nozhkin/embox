@@ -7,7 +7,7 @@ module flashfs {
 	source "flashfs.c"
 	option number inode_quantity=16
 	option number flashfs_descriptor_quantity=4
-	option number flashfs_file_size=16
+	option number flashfs_file_size=512
 
 	depends embox.mem.pool
 
