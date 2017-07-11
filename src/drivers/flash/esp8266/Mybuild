@@ -4,6 +4,4 @@ module spi_api_impl{
 	source "spi_api_impl.c"
 	@IncludeExport(path="drivers/esp8266")
 	source "spi_api_impl.h"
-
-	option number block_size
 }
