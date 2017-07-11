@@ -8,7 +8,7 @@
 
 #include "spi_api_impl.h"
 
-#include <embox/unit.h>
+static char buffer[FLASH_BLOCK_SIZE];
 
 // Let's make 'addr' is for converted addr, '_addr' is for not
 static inline uint32_t get_sector_by_addr(uint32_t _addr){
