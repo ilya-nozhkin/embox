@@ -1,10 +1,9 @@
 package embox.driver.servo
 
-abstract module api {
-	@IncludeExport(path="drivers")
-	source "servo.h"
-}
-
-module l298p extends api {
-	source "l298p.c", "l298p.h"
+module pca9685 {
+	source "pca9685.c"
+	@IncludeExport(path="drivers/servos")
+	source "pca9685.h"
+	
+	option number max_n = 1
 }

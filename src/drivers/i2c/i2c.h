@@ -3,12 +3,15 @@
 
 #include <stdint.h>
 
-void i2c_init(uint8_t sda_pin, uint8_t scl_pin, uint32_t _delay_time);
+struct i2c_bus;
 
-void i2c_start(void);
-void i2c_stop(void);
+struct i2c_bus *i2c_initialize(uint8_t sda_pin, uint8_t scl_pin, uint32_t delay_time);
+void i2c_terminate(struct i2c_bus *bus);
 
-uint8_t i2c_send(uint8_t data);
-uint8_t i2c_receive(uint8_t last);
+void i2c_start(struct i2c_bus *bus);
+void i2c_stop(struct i2c_bus *bus);
+
+uint8_t i2c_send(struct i2c_bus *bus, uint8_t data);
+uint8_t i2c_receive(struct i2c_bus *bus, uint8_t last);
 
 #endif

@@ -11,4 +11,6 @@ module api {
 
 module esp8266 extends api {
 	source "esp8266_i2c.c", "esp8266_i2c.h"
+	
+	option number max_n = 3
 }

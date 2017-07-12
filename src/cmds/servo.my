@@ -15,5 +15,5 @@ package embox.cmd
 module servo {
 	source "servo.c"
 
-	depends embox.driver.servo.l298p
+	//depends embox.driver.servo.l298p
 }
