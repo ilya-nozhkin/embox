@@ -1,0 +1,19 @@
+
+package embox.cmd
+
+@AutoCmd
+@Cmd(name = "servo",
+	help = "tests servo motors",
+	man = '''
+		NAME
+			servo
+		SYNOPSIS
+		DESCRIPTION
+		AUTHOR
+			Ilya Nozhkin
+	''')
+module servo {
+	source "servo.c"
+
+	depends embox.driver.servo.l298p
+}

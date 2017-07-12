@@ -14,11 +14,15 @@
 
 #define MAX_ADC_VALUE _MAX_ADC_VALUE
 
-void adc_start(uint32_t measures);
-void adc_stop(void);
+struct ad_converter;
 
-uint32_t adc_waiting(void);
-uint32_t *adc_get_raw(void);
-uint32_t adc_get_corrected(void);
+void adc_start(struct ad_converter *adc, uint32_t measures);
+void adc_stop(struct ad_converter *adc);
+
+uint32_t adc_waiting(struct ad_converter *adc);
+uint32_t *adc_get_raw(struct ad_converter *adc);
+uint32_t adc_get_corrected(struct ad_converter *adc);
+
+struct ad_converter *adc_by_id(uint32_t adc_id);
 
 #endif /* DRIVERS_ADC_H_ */
