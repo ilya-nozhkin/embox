@@ -1,0 +1,9 @@
+package embox.driver.sensors
+
+module hc_sr04 {
+    source "hc_sr04.c"
+    @IncludeExport(path="drivers/sensors")
+	source "hc_sr04.h"
+
+    depends embox.driver.gpio.esp8266
+}

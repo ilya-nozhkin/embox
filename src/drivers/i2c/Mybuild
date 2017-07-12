@@ -1,12 +1,14 @@
-
-package embox.driver
+package embox.driver.i2c
 
 module at91_twi {
 	source "at91_twi.c"
 }
 
-module i2c {
-	source "i2c.c"
-	@IncludeExport(path="drivers/i2c")
+module api {
+	@IncludeExport(path="drivers")
 	source "i2c.h"
+}
+
+module esp8266 extends api {
+	source "esp8266_i2c.c", "esp8266_i2c.h"
 }

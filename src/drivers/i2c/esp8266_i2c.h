@@ -1,0 +1,4 @@
+#ifndef DRIVERS_ESP8266_I2C_H_
+#define DRIVERS_ESP8266_I2C_H_
+
+#endif /* DRIVERS_ESP8266_I2C_H_ */

@@ -1,0 +1,18 @@
+package embox.cmd
+
+@AutoCmd
+@Cmd(name = "dht11_test",
+	help = "Get temperature and rh",
+	man = '''
+		NAME
+			dht11_test
+		SYNOPSIS
+		DESCRIPTION
+		AUTHOR
+			Egor Shitov
+	''')
+module dht11_test {
+	source "dht11_test.c"
+
+	depends embox.driver.sensors.dht11
+}
