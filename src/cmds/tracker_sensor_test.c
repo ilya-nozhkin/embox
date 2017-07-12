@@ -4,7 +4,7 @@
 
 int main(int argc, char **argv) {
 	for (int i = 0; i < 1000; i++) {
-		uint8_t data = tracker_sensor_measure();
+		uint8_t data = tracker_sensor_measure(1);
 		printf("%d\n", data);
 		usleep(1000);
 	}

@@ -11,6 +11,6 @@
 
 #include <stdint.h>
 
-uint8_t tracker_sensor_measure(void);
+uint8_t tracker_sensor_measure(uint32_t adc_id);
 
 #endif /* DRIVERS_TRACKER_SENSOR */
