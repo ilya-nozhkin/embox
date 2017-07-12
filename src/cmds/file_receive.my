@@ -1,0 +1,17 @@
+package embox.cmd
+
+@AutoCmd
+@Cmd(name = "file_receive",
+	help = "Receive a file",
+	man = '''
+		NAME
+			file_receive
+		SYNOPSIS
+		DESCRIPTION
+		AUTHOR
+			Egor Shitov
+	''')
+module file_receive {
+	source "file_receive.c"
+
+}
