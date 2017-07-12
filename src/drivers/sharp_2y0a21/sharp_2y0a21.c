@@ -1,8 +1,6 @@
 #include "sharp_2y0a21.h"
 #include <hal/system.h>
 #include <math.h>
-#include <unistd.h>
-
 #include <drivers/adc.h>
 
 uint8_t sharp_2y0a21_measure(void){
