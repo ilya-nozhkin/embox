@@ -115,8 +115,7 @@ uint32_t *adc_get_raw(struct ad_converter *adc) {
 	return SAR_DATA;
 }
 
-uint32_t adc_get_corrected(struct ad_converter *adc)
-{
+uint32_t adc_get_corrected(struct ad_converter *adc){
 	while (adc_waiting(adc));
 
 	uint32_t result = 0;
@@ -129,4 +128,14 @@ uint32_t adc_get_corrected(struct ad_converter *adc)
 	}
 
 	return MAX_ADC_VALUE - result / current_measures;
+}
+
+struct ad_converter *adc_by_id(uint32_t adc_id){
+	if (adc_id == 0){
+		struct ad_converter adc = {.id = 0};
+		return &adc;
+	}
+	else{
+		return 0;
+	}
 }
