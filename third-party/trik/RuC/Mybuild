@@ -2,4 +2,6 @@ package third_party
 
 module ruc {
 	source "import.c"
+	
+	depends third_party.sensor_map
 }

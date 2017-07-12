@@ -7,4 +7,6 @@ abstract module api {
 
 module l298p extends api {
 	source "l298p.c", "l298p.h"
+	
+	depends embox.driver.gpio.esp8266
 }
