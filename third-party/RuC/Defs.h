@@ -11,7 +11,7 @@
 
 #define MAXREPRTAB 2000
 #define MAXIDENTAB 200
-#define MAXMEMSIZE 5000
+#define MAXMEMSIZE 2500
 #define MAXTREESIZE 200
 #define MAXMODETAB 200
 #define MAXBOUNDS  200
@@ -21,7 +21,7 @@
 #define MAXSTRINGL 128
 #define INIPROSIZE 100
 
-// modetab 
+// modetab
 #define MFUNCTION 1001
 #define MSTRUCT   1002
 #define MARRAY    1003
@@ -463,7 +463,7 @@
 #define error_in_array_initialization      305
 #define error_in_initialization            306
 #define type_missmatch                     307
-#define array_assigment                    308 
+#define array_assigment                    308
 #define wrong_struct_ass                   309
 #define not_enough_expr                    310
 #define wrong_init                         311
