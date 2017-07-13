@@ -2,7 +2,7 @@ package embox.cmd
 
 @AutoCmd
 @Cmd(name="ruc",
-	help="runs RuC that executes code from /export.txt",
+	help="runs RuC",
 	man="")
 module ruc {
 	source "ruc.c"
