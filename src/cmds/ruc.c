@@ -21,6 +21,7 @@ extern uint32_t read_analog_sensor(uint8_t id);
 
 int main(int argc, char *argv[]) {
 	set_digital_sensor(0, 1, 0, 14);
+	set_analog_sensor(0, 1);
 	servo_init(5, 12, 4, 13);
 	
 	ruc_import("/export.txt");

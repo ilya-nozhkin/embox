@@ -3,6 +3,7 @@
 #include <drivers/sensors/hc_sr04.h>
 #include <drivers/sensors/dht11.h>
 #include <drivers/servos/l298p.h>
+#include <drivers/sensors/sharp_2y0a21.h>
 
 struct digital_sensor {
 	uint32_t type;
@@ -56,5 +57,8 @@ uint32_t read_digital_sensor(uint8_t id) {
 }
 
 uint32_t read_analog_sensor(uint8_t id) {
-	switch
+	switch (analog_sensors[id]) {
+		case ANALOG_SENSOR_SHARP_2Y0A21:
+			return sharp_2y0a21_measure(id);
+	}
 }

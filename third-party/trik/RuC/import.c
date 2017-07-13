@@ -436,8 +436,8 @@ void interpreter(int numthr)
                 break;
                 
             case GETANSENSORC:
-                n = mem[x];
-                mem[x] = read_analog_sensor(n - 1);
+                n = mem[x - 1];
+                mem[x - 1] = read_analog_sensor(n - 1);
                 break;
             case FUNCBEG:
                 pc = mem[pc+1];
