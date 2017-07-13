@@ -59,65 +59,65 @@ static inline void hdrf_magic(void) {
 
 extern void rom_sar_init(void);
 extern void rom_i2c_writeReg(uint8_t block, uint8_t host_id, uint8_t reg_add, uint8_t pData);
-extern void rom_i2c_writeReg_Mask(uint8_t block, uint8_t host_id, uint8_t reg_add, 
+extern void rom_i2c_writeReg_Mask(uint8_t block, uint8_t host_id, uint8_t reg_add,
                                   uint8_t msb, uint8_t lsb, uint8_t indata);
-                                  
+
 static uint32_t current_measures = 0;
 
 static int esp8266_adc_init(void) {
 	IO_RTC_4 = (IO_RTC_4 & (~1)) | 0x06000000; //disable WiFi and enable SAR
 	*((volatile uint32_t*) 0x60000834) = 0; //TODO: GPIO0_MUX = 0
-	
+
 	rom_sar_init();
-	
+
 	rom_i2c_writeReg_Mask(98, 1, 3, 7, 4, 15);
-	
+
 	dport_magic();
 	hdrf_magic();
-	
+
 	return 0;
 }
 
 EMBOX_UNIT_INIT(esp8266_adc_init);
 
-void adc_start(uint32_t measures) {	
+
+void adc_start(struct ad_converter *adc, uint32_t measures) {
 	//WTF??? Copy-pasted from pvvx's SDK
 	SAR_TIM1->value = (CLK_DIV * 5 + ((CLK_DIV - 1) << 16) + ((CLK_DIV - 1) << 8) - 1);
 	SAR_TIM2->value = (CLK_DIV * 11 + ((CLK_DIV * 3 - 1) << 8) + ((CLK_DIV * 11 - 1) << 16) - 1);
-	
+
 	SAR_CFG1->value = 1;
-	
+
 	SAR_CFG2->value = 0;
 	SAR_CFG2->value = 1;
 
 	SAR_CFG->num_measures = measures - 1;
 	SAR_CFG->clk_div = CLK_DIV;
 	SAR_CFG->waiting = 0;
-	
+
 	rom_i2c_writeReg_Mask(108, 2, 0, 5, 5, 1);
-	
+
 	current_measures = measures;
-	
+
 	SAR_CFG->new_measure = 0;
 	SAR_CFG->new_measure = 1;
 }
 
-void adc_stop(void) {
+void adc_stop(struct ad_converter *adc) {
 	rom_i2c_writeReg_Mask(108, 2, 0, 5, 5, 0);
 }
 
-uint32_t adc_waiting(void) {
+uint32_t adc_waiting(struct ad_converter *adc) {
 	return SAR_CFG->waiting;
 }
 
-uint32_t *adc_get_raw(void) {
+uint32_t *adc_get_raw(struct ad_converter *adc) {
 	return SAR_DATA;
 }
 
-uint32_t adc_get_corrected(void)
-{
-	while (adc_waiting());
-	
+uint32_t adc_get_corrected(struct ad_converter *adc){
+	while (adc_waiting(adc));
+
 	uint32_t result = 0;
 	for (int i = 0; i < current_measures; i++) {
 		int x = SAR_DATA[i];
@@ -126,6 +126,16 @@ uint32_t adc_get_corrected(void)
 		if(z > 0) x = ((z * 279) >> 8) + x;
 		result += x;
 	}
-	
+
 	return MAX_ADC_VALUE - result / current_measures;
+}
+
+struct ad_converter *adc_by_id(uint32_t adc_id){
+	if (adc_id == 0){
+		struct ad_converter adc = {.id = 0};
+		return &adc;
+	}
+	else{
+		return 0;
+	}
 }

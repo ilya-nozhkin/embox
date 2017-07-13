@@ -1,0 +1,18 @@
+package embox.cmd
+
+@AutoCmd
+@Cmd(name = "tracker_sensor_test",
+	help = "Get black or white",
+	man = '''
+		NAME
+			tracker_sensor_test
+		SYNOPSIS
+		DESCRIPTION
+		AUTHOR
+			Denis Kuznetsov
+	''')
+module tracker_sensor_test {
+	source "tracker_sensor_test.c"
+
+	depends embox.driver.tracker_sensor
+}
