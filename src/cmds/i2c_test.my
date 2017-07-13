@@ -1,0 +1,19 @@
+
+package embox.cmd
+
+@AutoCmd
+@Cmd(name = "i2c_test",
+	help = "tests i2c",
+	man = '''
+		NAME
+			adc_test
+		i2c_test
+		DESCRIPTION
+		AUTHOR
+			Ilya Nozhkin
+	''')
+module i2c_test {
+	source "i2c_test.c"
+
+	depends embox.driver.i2c.esp8266
+}

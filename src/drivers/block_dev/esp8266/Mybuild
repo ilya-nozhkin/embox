@@ -1,0 +1,14 @@
+package embox.driver.block_dev.esp8266
+
+module flashdisk{
+	source "flashdisk.c"
+
+	@IncludeExport(path="drivers/block_dev/esp8266")
+	source "flashdisk.h"
+
+	option number flashdisk_quantity = 2
+
+	depends embox.mem.pool
+	depends embox.driver.block
+	depends embox.util.indexator
+}

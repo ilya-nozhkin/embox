@@ -5,7 +5,7 @@
 MEMORY
 {
   dport0_0_seg : org = 0x3FF00000, len = 0x10
-  dram0_0_seg :  org = 0x3FFE8000, len = 0x20000
+  dram0_0_seg :  org = 0x3FFE8000, len = 0x14000
   iram1_0_seg :  org = 0x40100000, len = 0x8000
   irom0_0_seg :  org = 0x40240000, len = 0x5C000
 }
@@ -75,11 +75,11 @@ SECTIONS
     *(.dport.data)
     _dport0_data_end = ABSOLUTE(.);
   } >dport0_0_seg :dport0_0_phdr
-  
+
   .irom0.text : ALIGN(4)
   {
     _irom0_text_start = ABSOLUTE(.);
-    
+
     *(.rodata)
     *(.rodata.*)
     *(.rodata1)
@@ -551,4 +551,3 @@ PROVIDE ( Td4s = 0x3fffd500);
 PROVIDE ( rcons = 0x3fffd0f0);
 PROVIDE ( UartDev = 0x3fffde10 );
 PROVIDE ( flashchip = 0x3fffc714);
-
