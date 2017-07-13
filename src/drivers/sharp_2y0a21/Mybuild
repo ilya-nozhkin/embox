@@ -1,0 +1,9 @@
+package embox.driver
+
+module sharp_2y0a21 {
+    source "sharp_2y0a21.c"
+    @IncludeExport(path="drivers")
+	source "sharp_2y0a21.h"
+
+    depends embox.driver.adc.api
+}

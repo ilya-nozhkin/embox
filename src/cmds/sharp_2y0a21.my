@@ -1,0 +1,19 @@
+
+package embox.cmd
+
+@AutoCmd
+@Cmd(name = "sharp_test",
+	help = "prints distance in cm",
+	man = '''
+		NAME
+			sharp_test
+		SYNOPSIS
+		DESCRIPTION
+		AUTHOR
+			Denis Kuznetsov
+	''')
+module sharp_2y0a21_test {
+	source "sharp_2y0a21_test.c"
+
+	depends embox.driver.adc.esp8266
+}

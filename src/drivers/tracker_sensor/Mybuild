@@ -1,0 +1,9 @@
+package embox.driver
+
+module tracker_sensor {
+    source "tracker_sensor.c"
+    @IncludeExport(path="drivers")
+	source "tracker_sensor.h"
+
+    depends embox.driver.adc.api
+}
