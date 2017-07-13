@@ -25,7 +25,6 @@ struct dht11{
 };
 
 struct dht11 *dht11_setup(uint8_t pin_number, uint8_t wait);
-void dht11_request(struct dht11 *sensor);
 struct dht11_response dht11_read_response(struct dht11 *sensor);
 
 #endif /* DRIVERS_SENSORS_DHT11_H_ */

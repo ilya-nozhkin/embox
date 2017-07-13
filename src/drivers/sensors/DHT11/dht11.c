@@ -11,12 +11,10 @@
 #include <stdlib.h>
 #include <hal/clock.h>
 #include <hal/system.h>
-
 #include <drivers/gpio.h>
 
 #define DHT11_TIMEOUT 250
 
-//static struct gpio* dht;
 static inline uint32_t timestamp(void){
     uint32_t ccount;
     asm volatile ("rsr %0, ccount" : "=r"(ccount));
