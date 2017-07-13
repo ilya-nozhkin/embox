@@ -46,10 +46,8 @@ void servo_settings(uint8_t id, int32_t speed) {
 uint32_t read_digital_sensor(uint8_t id) {
 	switch (digital_sensors[id].type) {
 		case DIGITAL_SENSOR_HC_SR04: {
-			usleep(100000);
 			hc_sr04_request();
-			uint32_t resp = hc_sr04_response();
-			return resp;}
+			return hc_sr04_response();}
 		case DIGITAL_SENSOR_DHT11:
 			dht11_request();
 			return dht11_read_response().integral_temp;
