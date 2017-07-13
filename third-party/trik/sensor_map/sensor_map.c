@@ -2,6 +2,7 @@
 
 #include <drivers/sensors/hc_sr04.h>
 #include <drivers/sensors/dht11.h>
+#include <drivers/servos/l298p.h>
 
 struct digital_sensor {
 	uint32_t type;
@@ -11,6 +12,8 @@ struct digital_sensor {
 
 struct digital_sensor digital_sensors[8] = {0};
 uint32_t analog_sensors[8] = {0};
+
+struct l298p *servo_driver;
 
 void set_digital_sensor(uint8_t id, uint32_t type, uint8_t pin0, uint8_t pin1) {
 	digital_sensors[id].type = type;
@@ -31,15 +34,12 @@ void set_analog_sensor(uint8_t id, uint32_t type) {
 	analog_sensors[id] = type;
 }
 
-void servo_settings(uint8_t id, uint32_t speed) {
-	struct servo *motor = servo_by_id(id);
-	
-	if (speed != 0) {
-		servo_enable(motor);
-		servo_set_direction(motor, speed > 0 ? 1 : 0);
-	} else {
-		servo_disable(motor);
-	}
+void servo_init(uint8_t pwma, uint8_t pwmb, uint8_t dira, uint8_t dirb) {
+	servo_driver = l298p_start(pwma, pwmb, dira, dirb);
+}
+
+void servo_settings(uint8_t id, int32_t speed) {
+	l298p_servo_set(servo_driver, id, speed);
 }
 
 uint32_t read_digital_sensor(uint8_t id) {
@@ -56,5 +56,5 @@ uint32_t read_digital_sensor(uint8_t id) {
 }
 
 uint32_t read_analog_sensor(uint8_t id) {
-	
+	switch
 }

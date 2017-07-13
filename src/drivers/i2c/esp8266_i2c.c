@@ -9,6 +9,8 @@
 #include <hal/system.h>
 #include <hal/arch.h>
 
+#include "esp8266_i2c.h"
+
 #define MAX_I2C_BUS_N OPTION_GET(NUMBER, max_n)
 
 struct i2c_bus buses[MAX_I2C_BUS_N];
@@ -36,21 +38,24 @@ static inline uint8_t get_level(struct gpio *line) {
 	return gpio_get_level(line, 0);
 }
 
-struct i2c_bus *i2c_init(uint8_t sda_pin, uint8_t scl_pin, uint32_t delay_time) {
-	buses[i2c_bus_number].sda = gpio_by_num(sda_pin);
-	buses[i2c_bus_number].scl = gpio_by_num(scl_pin);
+struct i2c_bus *i2c_initialize(uint8_t sda_pin, uint8_t scl_pin, uint32_t delay_time) {
+	struct i2c_bus *bus = &buses[i2c_bus_number];
 	
-	buses[i2c_bus_number].delay = delay_time;
+	bus->sda = gpio_by_num(sda_pin);
+	bus->scl = gpio_by_num(scl_pin);
 	
-	buses[i2c_bus_number].id = i2c_bus_number;
+	bus->delay = delay_time;
 	
-	gpio_set_level(buses[i2c_bus_number].scl, 0, 0);
-	gpio_set_level(buses[i2c_bus_number].sda, 0, 0);
+	bus->id = i2c_bus_number;
+	
+	gpio_set_level(bus->scl, 0, 0);
+	gpio_set_level(bus->sda, 0, 0);
 	
 	set_levels(bus, 1, 1);
 	delay(bus);
 	
-	return &buses[i2c_bus_number++];
+	i2c_bus_number++;
+	return bus;
 }
 
 void i2c_terminate(struct i2c_bus *bus) {
@@ -94,7 +99,7 @@ uint8_t i2c_send(struct i2c_bus *bus, uint8_t data) {
 		set_levels(bus, bit, 1);
 		delay(bus);
 		
-		while (get_level(scl) == 0);
+		while (get_level(bus->scl) == 0);
 		
 		set_levels(bus, bit, 0);
 		delay(bus);

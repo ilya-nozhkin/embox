@@ -7,3 +7,11 @@ module pca9685 {
 	
 	option number max_n = 1
 }
+
+module l298p {
+	source "l298p.c"
+	@IncludeExport(path="drivers/servos")
+	source "l298p.h"
+	
+	option number max_n = 1
+}
