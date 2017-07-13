@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <unistd.h>
-#include <drivers/tracker_sensor.h>
+#include <drivers/sensors/tracker_sensor.h>
 
 int main(int argc, char **argv) {
 	for (int i = 0; i < 1000; i++) {

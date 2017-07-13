@@ -3,14 +3,12 @@
  * @brief
  *
  * @author  Ilya Nozhkin
- * @date    29.06.2017
+ * @date    13.07.2017
  */
 
-#ifndef DRIVERS_L298P_H_
-#define DRIVERS_L298P_H_
+#include <stdint.h>
 
-struct servo {
-	int id;
-};
+struct l298p;
 
-#endif /* DRIVERS_L298P_H_ */
+struct l298p *l298p_start(uint8_t pwma, uint8_t pwmb, uint8_t dira, uint8_t dirb);
+void l298p_servo_set(struct l298p *driver, uint8_t servo, int8_t power);

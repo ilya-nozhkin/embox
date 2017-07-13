@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <unistd.h>
-#include <drivers/sharp_2y0a21.h>
+#include <drivers/sensors/sharp_2y0a21.h>
 
 int main(int argc, char **argv) {
 	for (int i = 0; i < 1000; i++) {

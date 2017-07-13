@@ -14,5 +14,5 @@ package embox.cmd
 module tracker_sensor_test {
 	source "tracker_sensor_test.c"
 
-	depends embox.driver.tracker_sensor
+	depends embox.driver.sensors.tracker_sensor
 }
