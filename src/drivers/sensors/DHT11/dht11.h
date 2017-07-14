@@ -24,6 +24,7 @@ struct dht11{
 	struct gpio *dht;
 };
 
+void dht11_request(struct dht11 *sensor);
 struct dht11 *dht11_setup(uint8_t pin_number, uint8_t wait);
 struct dht11_response dht11_read_response(struct dht11 *sensor);
 

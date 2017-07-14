@@ -1,5 +1,0 @@
-package third_party
-
-module ruc {
-	source "import.c"
-}

@@ -11,10 +11,10 @@
 #include <pthread.h>
 
 #define MAXREPRTAB   2000
-#define MAXIDENTAB   1000
-#define MAXMEMSIZE   2000
+#define MAXIDENTAB   500
+#define MAXMEMSIZE   1100
 #define MAXTREESIZE  1000
-#define MAXMODETAB   1500
+#define MAXMODETAB   1000
 #define MAXBOUNDS    100
 #define FUNCSIZE     100
 #define SOURCESIZE   10000
