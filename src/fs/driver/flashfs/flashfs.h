@@ -11,15 +11,8 @@
 
 #include <stdint.h>
 
-/* DOS attribute bits  */
-#define ATTR_READ_ONLY	0x01
-#define ATTR_HIDDEN		0x02
-#define ATTR_SYSTEM		0x04
-#define ATTR_VOLUME_ID	0x08
-#define ATTR_DIRECTORY	0x10
-#define ATTR_ARCHIVE	0x20
-#define ATTR_LONG_NAME	(ATTR_READ_ONLY | ATTR_HIDDEN | ATTR_SYSTEM | \
-ATTR_VOLUME_ID)
+#define FLAG_EXIST		0xF0F0F0F0
+#define FLAG_DELETED	0x0
 
 typedef struct flashfs_fs_info {
 	uint32_t numblocks;			/* number of block in volume */
@@ -28,8 +21,15 @@ typedef struct flashfs_fs_info {
 } flashfs_fs_info_t;
 
 typedef struct flashfs_file_info {
-	int     index;		        /* number of file in FS*/
-	int     mode;				/* mode in which this file was opened */
+	uint32_t index;		        /* number of file in FS*/
+	uint32_t mode;				/* mode in which this file was opened */
 	uint32_t pointer;			/* current (BYTE) pointer */
 } flashfs_file_info_t;
+
+typedef struct flashfs_store_info {
+	uint32_t 	exist;			/* helps find out if this is garbage */
+	char		name[NAME_MAX]; /* name itself */
+	char 		ph[28];			/* placeholder */
+} flashfs_store_info_t;
+
 #endif /* FS_DRIVER_FLASHFS_H_ */

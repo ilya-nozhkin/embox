@@ -25,11 +25,13 @@
 #include <drivers/block_dev.h>
 #include <drivers/block_dev/esp8266/flashdisk.h>
 
+#define MAX_FILES_ALLOWED (OPTION_GET(NUMBER,inode_quantity) - 1)
+
 /* flashfs filesystem description pool */
 POOL_DEF(flashfs_fs_pool, struct flashfs_fs_info, OPTION_GET(NUMBER,flashfs_descriptor_quantity));
 
 /* flashfs file description pool */
-POOL_DEF(flashfs_file_pool, struct flashfs_file_info, OPTION_GET(NUMBER,inode_quantity));
+POOL_DEF(flashfs_file_pool, struct flashfs_file_info, MAX_FILES_ALLOWED);
 
 INDEX_DEF(flashfs_file_idx,0,OPTION_GET(NUMBER,inode_quantity));
 
@@ -42,6 +44,11 @@ INDEX_DEF(flashfs_file_idx,0,OPTION_GET(NUMBER,inode_quantity));
 
 static char sector_buff[FLASH_BLOCK_SIZE];
 static char flashfs_dev[] = FLASHFS_DEV;
+
+static int store_node_created(struct node *node);
+static int store_node_removed(struct node *node);
+static int load_node_if_exists(struct nas *parent_nas, int index);
+static int mount_stored_files(void);
 
 static int flashfs_format(void *dev){
 	node_t *dev_node;
@@ -109,11 +116,15 @@ static int flashfs_mount(void *dev, void *dir){
 	fi->pointer = 0;
 	dir_nas->fi->privdata = (void *) fi;
 
+	mount_stored_files();
+
 	return 0;
 }
 
 EMBOX_UNIT_INIT(flashfs_init);
 static int flashfs_init(void){
+	assert(MAX_FILE_SIZE/MAX_FILES_ALLOWED >= sizeof(flashfs_store_info_t));
+
 	struct path dir_node;
 	vfs_lookup(FLASHFS_DIR, &dir_node);
 
@@ -204,9 +215,6 @@ static size_t flashfs_read(struct file_desc *desc, void *buf, size_t size){
 
 	size_t counter = 0;
 
-	char debug_buff[FLASH_BLOCK_SIZE+1];
-	debug_buff[FLASH_BLOCK_SIZE] = '\0';
-
 	while (pbuf < ebuf) {
 		blkno_t blk = desc->cursor / fsi->block_size;
 		int offset = desc->cursor % fsi->block_size;
@@ -222,8 +230,6 @@ static size_t flashfs_read(struct file_desc *desc, void *buf, size_t size){
 		if(1 != flashfs_read_sector(nas, sector_buff, 1, blk_to_read)) {
 			break;
 		}
-
-		memcpy(debug_buff, sector_buff, FLASH_BLOCK_SIZE);
 
 		read_n = min(fsi->block_size - offset, ebuf - pbuf);
 		memcpy (pbuf, sector_buff + offset, read_n);
@@ -344,7 +350,7 @@ static flashfs_file_info_t *flashfs_create_file(struct nas *nas){
 	return fi;
 }
 
-static int flashfs_create(struct node *parent_node, struct node* node){
+static int flashfs_create_no_store(struct node *parent_node, struct node* node){
 	struct nas *nas;
 
 	nas = node->nas;
@@ -358,6 +364,12 @@ static int flashfs_create(struct node *parent_node, struct node* node){
 	nas->fs = parent_node->nas->fs;
 
 	return 0;
+}
+
+static int flashfs_create(struct node *parent_node, struct node* node){
+	int result = flashfs_create_no_store(parent_node, node);
+	store_node_created(node);
+	return result;
 }
 
 static int flashfs_delete(struct node *node) {
@@ -374,6 +386,8 @@ static int flashfs_delete(struct node *node) {
 
 	vfs_del_leaf(node);
 
+	store_node_removed(node);
+
 	return 0;
 }
 
@@ -385,6 +399,112 @@ static int flashfs_truncate(struct node *node, off_t length){
 	}
 
 	nas->fi->ni.size = length;
+
+	return 0;
+}
+
+static int store_node_created(struct node *node){
+	flashfs_store_info_t si;
+	flashfs_file_info_t *fi;
+	flashfs_fs_info_t *fsi;
+	uint32_t block_size;
+	uint32_t blocks_to_write;
+	uint32_t offset;
+	uint32_t blks_per_si;
+	struct nas *nas;
+
+	nas = node->nas;
+	fsi = nas->fs->fsi;
+	fi = nas->fi->privdata;
+
+	block_size = fsi->block_size;
+	blocks_to_write = (sizeof(flashfs_store_info_t) + block_size - 1)/block_size;
+
+	blks_per_si = (MAX_FILE_SIZE/MAX_FILES_ALLOWED + block_size - 1)/block_size;
+	offset = fsi->block_per_file * MAX_FILES_ALLOWED + fi->index*blks_per_si;
+
+	si.exist = FLAG_EXIST;
+	memcpy(si.name, node->name, NAME_MAX);
+
+	printk("[CREATE] Offset: %u, index: %u\n", offset, fi->index);
+
+	block_dev_write(nas->fs->bdev, (char *)&si, blocks_to_write * block_size, offset);
+
+	return 0;
+}
+
+static int store_node_removed(struct node *node){
+	flashfs_file_info_t *fi;
+	flashfs_fs_info_t *fsi;
+	uint32_t offset;
+	uint32_t blks_per_si;
+	uint32_t block_size;
+	struct nas *nas;
+	char exist[16] = {0}; // should be allocated dynamicly with size = block_size
+
+	nas = node->nas;
+	fsi = nas->fs->fsi;
+	fi = nas->fi->privdata;
+	block_size = fsi->block_size;
+
+	blks_per_si = (MAX_FILE_SIZE/MAX_FILES_ALLOWED + block_size - 1)/block_size;
+	offset = fsi->block_per_file * MAX_FILES_ALLOWED + fi->index*blks_per_si;
+
+	printk("[REMOVE] Offset: %u, index: %u\n", offset, fi->index);
+
+	block_dev_write(nas->fs->bdev, (char *)&exist, 1*block_size, offset);
+
+	return 0;
+}
+
+static int load_node_if_exists(struct nas *parent_nas, int index){
+	flashfs_store_info_t *si;
+	flashfs_file_info_t *fi;
+	flashfs_fs_info_t *fsi;
+	uint32_t offset;
+	uint32_t blks_per_si;
+	uint32_t block_size;
+	struct nas *nas = parent_nas;
+	struct node *node;
+
+	fsi = nas->fs->fsi;
+	fi = nas->fi->privdata;
+	block_size = fsi->block_size;
+
+	blks_per_si = (MAX_FILE_SIZE/MAX_FILES_ALLOWED + block_size - 1)/block_size;
+	offset = 0;//fsi->block_per_file * MAX_FILES_ALLOWED + fi->index*blks_per_si;
+
+	uint32_t size = sizeof(flashfs_store_info_t);
+
+	printk("Size: %u, offset: %u", size, offset);
+
+	block_dev_read(nas->fs->bdev, (char *) si, size, offset);
+
+	return 0;
+
+	if(si->exist != FLAG_EXIST)
+		return -ENOENT;
+
+	if (NULL == (node = vfs_subtree_create_child(parent_nas->node, si->name, S_IFREG))){
+		return -ENOMEM;
+	}
+
+	flashfs_create_no_store(parent_nas->node, node);
+
+	return 0;
+}
+
+static int mount_stored_files(void){
+	struct path root_path;
+	if(vfs_lookup(FLASHFS_DIR, &root_path)){
+		return -ENOENT;
+	}
+
+	struct nas *parent_nas = root_path.node->nas;
+
+	for(int i = 0; i < MAX_FILES_ALLOWED; i++){
+		load_node_if_exists(parent_nas, i);
+	}
 
 	return 0;
 }
