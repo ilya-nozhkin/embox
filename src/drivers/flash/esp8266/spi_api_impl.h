@@ -56,7 +56,6 @@ extern volatile uint32_t dport_[64];
 SpiFlashOpResult wait_spi_idle(SpiFlashChip *flashchip);
 SpiFlashOpResult spi_read_status(SpiFlashChip *flashchip, uint32_t *status);
 SpiFlashOpResult spi_write_enable(SpiFlashChip *flashchip);
-SpiFlashOpResult spi_erase_sector(uint32_t sector);
 
 /* built-in esp8266 functions */
 extern void Cache_Read_Disable(void);
