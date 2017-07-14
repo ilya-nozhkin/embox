@@ -12,19 +12,18 @@
 
 extern int ruc_import();
 
-extern void set_digital_sensor(uint8_t id, uint32_t type, uint8_t pin0, uint8_t pin1);
-extern void set_analog_sensor(uint8_t id, uint32_t type);
+int main(int argc, char **argv) {
 
-extern void servo_settings(uint8_t id, uint32_t speed);
-extern uint32_t read_digital_sensor(uint8_t id);
-extern uint32_t read_analog_sensor(uint8_t id);
+	char dir[] = "/flash/";
+	char *path = malloc(strlen(argv[1]) + 1 + 7);
 
-int main(int argc, char *argv[]) {
-	set_digital_sensor(0, 1, 0, 14);
-	set_analog_sensor(0, 1);
-	servo_init(5, 12, 4, 13);
-	
-	ruc_import("/export.txt");
+	memcpy(path, dir, 7);
+	memcpy(path+7, argv[1], strlen(argv[1]) + 1);
+
+	ruc_import(path);
+
 	fflush(stdout);
+	free(path);
+  
 	return 0;
 }
