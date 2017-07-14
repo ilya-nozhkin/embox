@@ -1,0 +1,7 @@
+package third_party
+
+module sensor_map {
+	source "sensor_map.c"
+	@IncludeExport(path="")
+	source "sensor_map.h"
+}

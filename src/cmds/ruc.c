@@ -24,5 +24,6 @@ int main(int argc, char **argv) {
 
 	fflush(stdout);
 	free(path);
+  
 	return 0;
 }

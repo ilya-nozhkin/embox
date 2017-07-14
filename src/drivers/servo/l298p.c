@@ -6,39 +6,46 @@
  * @date    29.06.2017
  */
 
-#include <drivers/servo.h>
+#include <drivers/servos/l298p.h>
 #include <drivers/gpio.h>
 #include <stdint.h>
 
-struct servo motorA = {.id = 0};
-struct servo motorB = {.id = 1};
+#include <embox/unit.h>
 
-#define PWMA 5
-#define PWMB 12
-#define DIRA 4
-#define DIRB 13
+#define L298P_MAX_N OPTION_GET(NUMBER, max_n)
 
-struct servo *servo_by_id(uint32_t motor_id) {
-	return motor_id == 0 ? &motorA : &motorB;
+struct l298p {
+	struct gpio *pwma;
+	struct gpio *pwmb;
+	struct gpio *dira;
+	struct gpio *dirb;
+};
+
+struct l298p l298p_drivers[L298P_MAX_N];
+uint32_t l298p_number = 0;
+
+struct l298p *l298p_start(uint8_t pwma, uint8_t pwmb, uint8_t dira, uint8_t dirb) {
+	struct l298p *driver = &l298p_drivers[l298p_number++];
+	
+	driver->pwma = gpio_by_num(pwma);
+	driver->pwmb = gpio_by_num(pwmb);
+	driver->dira = gpio_by_num(dira);
+	driver->dirb = gpio_by_num(dirb);
+	
+	gpio_settings(driver->pwma, 0, GPIO_MODE_OUTPUT | GPIO_MODE_OUT_PUSH_PULL);
+	gpio_settings(driver->pwmb, 0, GPIO_MODE_OUTPUT | GPIO_MODE_OUT_PUSH_PULL);
+	gpio_settings(driver->dira, 0, GPIO_MODE_OUTPUT | GPIO_MODE_OUT_PUSH_PULL);
+	gpio_settings(driver->dirb, 0, GPIO_MODE_OUTPUT | GPIO_MODE_OUT_PUSH_PULL);
+	
+	return driver;
 }
 
-void servo_enable(struct servo *motor) {
-	struct gpio *pwm = gpio_by_num(motor->id == 0 ? PWMA : PWMB);
-
-	gpio_settings(pwm, 0, GPIO_MODE_OUTPUT);
-	gpio_set_level(pwm, 0, 1);
-}
-
-void servo_disable(struct servo *motor) {
-	struct gpio *pwm = gpio_by_num(motor->id == 0 ? PWMA : PWMB);
-
-	gpio_settings(pwm, 0, GPIO_MODE_OUTPUT);
-	gpio_set_level(pwm, 0, 0);
-}
-
-void servo_set_direction(struct servo *motor, uint32_t direction) {
-	struct gpio *dir = gpio_by_num(motor->id == 0 ? DIRA : DIRB);
-
-	gpio_settings(dir, 0, GPIO_MODE_OUTPUT);
-	gpio_set_level(dir, 0, direction);
+void l298p_servo_set(struct l298p *driver, uint8_t servo, int8_t power) {
+	if (servo == 0) {
+		gpio_set_level(driver->dira, 0, power >= 0 ? 1 : 0);
+		gpio_set_level(driver->pwma, 0, power != 0 ? 1 : 0);
+	} else if (servo == 1) {
+		gpio_set_level(driver->dirb, 0, power >= 0 ? 1 : 0);
+		gpio_set_level(driver->pwmb, 0, power != 0 ? 1 : 0);
+	}
 }

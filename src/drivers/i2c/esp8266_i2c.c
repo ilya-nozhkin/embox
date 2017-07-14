@@ -9,26 +9,28 @@
 #include <hal/system.h>
 #include <hal/arch.h>
 
-struct gpio *sda;
-struct gpio *scl;
+#include "esp8266_i2c.h"
 
-uint32_t delay_time;
+#define MAX_I2C_BUS_N OPTION_GET(NUMBER, max_n)
 
-static void delay(void) {
-	arch_delay(delay_time);
+struct i2c_bus buses[MAX_I2C_BUS_N];
+uint32_t i2c_bus_number = 0;
+
+static void delay(struct i2c_bus *bus) {
+	arch_delay(bus->delay);
 }
 
-static inline void set_levels(uint8_t sda_level, uint8_t scl_level) {
+static inline void set_levels(struct i2c_bus *bus, uint8_t sda_level, uint8_t scl_level) {
 	if (sda_level) {
-		gpio_settings(sda, 0, GPIO_MODE_INPUT | GPIO_MODE_IN_PULL_UP);
+		gpio_settings(bus->sda, 0, GPIO_MODE_INPUT | GPIO_MODE_IN_PULL_UP);
 	} else {
-		gpio_settings(sda, 0, GPIO_MODE_OUTPUT | GPIO_MODE_OUT_OPEN_DRAIN);
+		gpio_settings(bus->sda, 0, GPIO_MODE_OUTPUT | GPIO_MODE_OUT_OPEN_DRAIN);
 	}
 	
 	if (scl_level) {
-		gpio_settings(scl, 0, GPIO_MODE_INPUT | GPIO_MODE_IN_PULL_UP);
+		gpio_settings(bus->scl, 0, GPIO_MODE_INPUT | GPIO_MODE_IN_PULL_UP);
 	} else {
-		gpio_settings(scl, 0, GPIO_MODE_OUTPUT | GPIO_MODE_OUT_OPEN_DRAIN);
+		gpio_settings(bus->scl, 0, GPIO_MODE_OUTPUT | GPIO_MODE_OUT_OPEN_DRAIN);
 	}
 } 
 
@@ -36,94 +38,114 @@ static inline uint8_t get_level(struct gpio *line) {
 	return gpio_get_level(line, 0);
 }
 
-void i2c_init(uint8_t sda_pin, uint8_t scl_pin, uint32_t _delay_time) {
-	sda = gpio_by_num(sda_pin);
-	scl = gpio_by_num(scl_pin);
+struct i2c_bus *i2c_initialize(uint8_t sda_pin, uint8_t scl_pin, uint32_t delay_time) {
+	struct i2c_bus *bus = &buses[i2c_bus_number];
 	
-	delay_time = _delay_time;
+	bus->sda = gpio_by_num(sda_pin);
+	bus->scl = gpio_by_num(scl_pin);
 	
-	gpio_set_level(scl, 0, 0);
-	gpio_set_level(sda, 0, 0);
+	bus->delay = delay_time;
 	
-	set_levels(1, 1);
-	delay();
+	bus->id = i2c_bus_number;
+	
+	gpio_set_level(bus->scl, 0, 0);
+	gpio_set_level(bus->sda, 0, 0);
+	
+	set_levels(bus, 1, 1);
+	delay(bus);
+	
+	i2c_bus_number++;
+	return bus;
 }
 
-void i2c_start(void) {
-	set_levels(1, 1);
-	delay();
-	set_levels(0, 1);
-	delay();
+void i2c_terminate(struct i2c_bus *bus) {
+	for (int i = 0; i < i2c_bus_number; i++) {
+		if (buses[i].id == bus->id) {
+			for (int j = i; j < i2c_bus_number - 1; j++) {
+				buses[j] = buses[j + 1];
+			}
+			
+			i2c_bus_number--;
+			return;
+		}
+	}
 }
 
-void i2c_stop(void) {
-	delay();
-	set_levels(0, 1);
-	delay();
-	set_levels(1, 1);
-	delay();
+void i2c_start(struct i2c_bus *bus) {
+	set_levels(bus, 1, 1);
+	delay(bus);
+	set_levels(bus, 0, 1);
+	delay(bus);
 }
 
-uint8_t i2c_send(uint8_t data) {
-	delay();
-	set_levels(1, 0);
-	delay();
+void i2c_stop(struct i2c_bus *bus) {
+	delay(bus);
+	set_levels(bus, 0, 1);
+	delay(bus);
+	set_levels(bus, 1, 1);
+	delay(bus);
+}
+
+uint8_t i2c_send(struct i2c_bus *bus, uint8_t data) {
+	delay(bus);
+	set_levels(bus, 1, 0);
+	delay(bus);
 	
 	for (int8_t i = 7; i >= 0; i--) {
 		uint8_t bit = (data >> i) & 1;
 		
-		set_levels(bit, 0);
-		delay();
-		set_levels(bit, 1);
-		delay();
+		set_levels(bus, bit, 0);
+		delay(bus);
+		set_levels(bus, bit, 1);
+		delay(bus);
 		
-		while (get_level(scl) == 0);
+		while (get_level(bus->scl) == 0);
 		
-		set_levels(bit, 0);
-		delay();
+		set_levels(bus, bit, 0);
+		delay(bus);
 	}
 	
-	set_levels(1, 0);
-	delay();
-	set_levels(1, 1);
-	delay();
+	set_levels(bus, 1, 0);
+	delay(bus);
+	set_levels(bus, 1, 1);
+	delay(bus);
 	
-	uint8_t ack = get_level(sda);
+	uint8_t ack = get_level(bus->sda);
 	
-	set_levels(1, 0);
-	delay();
+	set_levels(bus, 1, 0);
+	delay(bus);
 	
 	return ack;
 }
 
-uint8_t i2c_receive(uint8_t last) {
+uint8_t i2c_receive(struct i2c_bus *bus, uint8_t last) {
 	uint8_t data = 0;
 	
-	delay();
-	set_levels(1, 0);
-	delay();
+	delay(bus);
+	set_levels(bus, 1, 0);
+	delay(bus);
 	
 	for (int8_t i = 7; i >= 0; i--) {
-		set_levels(1, 0);
-		delay();
-		set_levels(1, 1);
-		delay();
+		set_levels(bus, 1, 0);
+		delay(bus);
+		set_levels(bus, 1, 1);
+		delay(bus);
 		
-		while (get_level(scl) == 0);
+		while (get_level(bus->scl) == 0);
 		
 		data <<= 1;
-		data |= get_level(sda) & 1;
+		data |= get_level(bus->sda) & 1;
 		
-		set_levels(1, 0);
-		delay();
+		set_levels(bus, 1, 0);
+		delay(bus);
 	}
 	
-	set_levels(last, 0);
-	delay();
-	set_levels(last, 1);
-	delay();
-	set_levels(last, 0);
-	delay();
+	set_levels(bus, last, 0);
+	delay(bus);
+	set_levels(bus, last, 1);
+	delay(bus);
+	set_levels(bus, last, 0);
+	delay(bus);
 	
 	return data;
 }
