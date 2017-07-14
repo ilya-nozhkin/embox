@@ -12,13 +12,23 @@
 #define FLASH_BLOCK_SIZE 	16				// block size (bytes)
 #define FLASH_SECTOR_SIZE   (4*1024)		// sector size 4KBytes (esp8266-documented)
 #define FLASH_MAX_SIZE      (2*1024*1024)	// actually 4MBytes (esp8266-documented)
-#define MIN_SECTOR_NUMBER   32				// reserved for executable code
+#define MIN_SECTOR_NUMBER   16				// reserved for executable code
 
-#define IDX_SPI_CMD 0
-#define IDX_SPI_ADDR 1
+#define BIT(n) 				(1UL << (n))	// not sure if it was defined before
 
-#define SPI0_CMD spi0_[IDX_SPI_CMD]
-#define SPI0_ADDR spi0_[IDX_SPI_ADDR]
+#define IDX_SPI_CMD 		0
+#define IDX_SPI_ADDR 		1
+#define IDX_SPI_RD_STATUS 	4
+
+#define SPI0_CMD 			spi0_[IDX_SPI_CMD]
+#define SPI0_ADDR 			spi0_[IDX_SPI_ADDR]
+#define SPI0_RD_STATUS		spi0_[IDX_SPI_RD_STATUS]
+
+#define SPI_READ 			(BIT(31))
+#define SPI_WREN			(BIT(30))
+#define SPI_SE				(BIT(24))	// sector erase
+
+#define DPORT_BASE 			dport_
 
 #include <stdint.h>
 
@@ -40,9 +50,15 @@ typedef enum{
 } SpiFlashOpResult;
 
 extern volatile uint32_t spi0_[64];
+extern volatile uint32_t dport_[64];
+
+/* custom implementation of built-in esp8266 functions o_0 */
+SpiFlashOpResult wait_spi_idle(SpiFlashChip *flashchip);
+SpiFlashOpResult spi_read_status(SpiFlashChip *flashchip, uint32_t *status);
+SpiFlashOpResult spi_write_enable(SpiFlashChip *flashchip);
+SpiFlashOpResult spi_erase_sector(uint32_t sector);
 
 /* built-in esp8266 functions */
-extern void Wait_SPI_Idle(SpiFlashChip*);
 extern void Cache_Read_Disable(void);
 extern void Cache_Read_Enable(uint32_t,uint32_t,uint32_t);
 extern SpiFlashOpResult SPIEraseSector(uint16_t sector);

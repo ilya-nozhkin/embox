@@ -553,3 +553,4 @@ PROVIDE ( UartDev = 0x3fffde10 );
 PROVIDE ( flashchip = 0x3fffc714);
 PROVIDE ( spi0_ = 0x60000200 );
 PROVIDE ( spi1_ = 0x60000100 );
+PROVIDE ( dport_ = 0x3ff00000 );
