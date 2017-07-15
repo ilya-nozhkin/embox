@@ -478,9 +478,9 @@ static int load_node_if_exists(struct nas *parent_nas, int index){
 
 	printk("Size: %u, offset: %u", size, offset);
 
-	block_dev_read(nas->fs->bdev, (char *) si, size, offset);
-
 	return 0;
+
+	block_dev_read(nas->fs->bdev, (char *) si, size, offset);
 
 	if(si->exist != FLAG_EXIST)
 		return -ENOENT;
