@@ -10,11 +10,11 @@
 #include <embox/test.h>
 #include <stdlib.h>
 
-#define ESP8266_SPI_TEST_DATA_SIZE 16
+#define ESP8266_SPI_TEST_DATA_SIZE 14
 
 EMBOX_TEST_SUITE("esp8266 flash ops test");
 
-static char data[ESP8266_SPI_TEST_DATA_SIZE] = "Hello, world!12";
+static char data[ESP8266_SPI_TEST_DATA_SIZE] = "Hello, world!";
 
 TEST_CASE("Write/read to/from flash") {
 	char data_to_read[ESP8266_SPI_TEST_DATA_SIZE] = {0};
@@ -36,7 +36,7 @@ TEST_CASE("Write/read to/from flash with offset") {
 	char data_to_read[ESP8266_SPI_TEST_DATA_SIZE] = {0};
 
 	// Write and read with offset
-	uint8_t offset = 16;
+	uint8_t offset = 18;
 
 	test_assert_zero(spi_flash_write(offset, data, ESP8266_SPI_TEST_DATA_SIZE));
 	test_assert_zero(spi_flash_read(offset, data_to_read, ESP8266_SPI_TEST_DATA_SIZE));
@@ -46,13 +46,7 @@ TEST_CASE("Write/read to/from flash with offset") {
 		if(data[i] != data_to_read[i])
 			fail = true;
 
+	printk("data_to_read: %s\n", data_to_read);
+
 	test_assert_zero(fail);
-}
-
-TEST_CASE("Read from unwritten place") {
-	uint32_t dest[8] = {0};
-
-	// if spi_flash_read fails, it will throw exception
-	SpiFlashOpResult res = spi_flash_read(FLASH_BLOCK_SIZE*20, dest, sizeof(uint32_t) * 8);
-	test_assert_zero(res);
 }

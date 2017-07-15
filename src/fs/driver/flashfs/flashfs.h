@@ -11,7 +11,7 @@
 
 #include <stdint.h>
 
-#define FLAG_EXIST		0xF0F0F0F0
+#define FLAG_EXIST		0x01061998
 #define FLAG_DELETED	0x0
 
 typedef struct flashfs_fs_info {

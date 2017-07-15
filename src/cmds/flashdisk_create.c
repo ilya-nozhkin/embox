@@ -7,24 +7,12 @@ int main(int argc, char **argv) {
 
 	//flashdisk_create(argv[1], 64*1024);
 
-	int mode = atoi(argv[1]);
+	int offset = atoi(argv[1]) * 16;
 
-	uint32_t src[4] = {1, 1, 1, 1};
-	uint32_t dest[12] = {0};
+	uint32_t dest = 0xDEADBEEF;
+	int res = spi_flash_read(offset, &dest, 4);
 
-	if(mode == 1){
-		int res = spi_flash_write(0, src, 16);
-		printf("Result: %d\n", res);
-	} else if(mode == 2){
-		spi_flash_erase_sector(0);
-	} else {
-		int res = spi_flash_read(0, dest, 48);
-
-		printf("Result: %d\n", res);
-
-		for(int i = 0;i < 12; i++)
-			printk("%d ", dest[i]);
-	}
+	printf("res: %d 0x%X\n", res, dest);
 
 	return 0;
 }

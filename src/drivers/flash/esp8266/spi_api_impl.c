@@ -40,34 +40,29 @@ SpiFlashOpResult spi_flash_write(uint32_t dest_addr, uint32_t *src_addr, uint32_
 	if(!src_addr || !size)
 		return SPI_FLASH_RESULT_ERR;
 
-	/* We should align it like 0x...000 */
-	if(size & 3){
-		// We don't need align it right there (at this moment :p)
-		return SPI_FLASH_RESULT_UNALIGNED_ADDR;
-	} else {
-		if(is_oversize(_dest_addr, size))
-			return SPI_FLASH_RESULT_OVERSIZE;
+	if(is_oversize(_dest_addr, size))
+		return SPI_FLASH_RESULT_OVERSIZE;
 
-		SpiFlashOpResult res;
-		res = spi_flash_read(dest_addr, spi_buff, FLASH_SECTOR_SIZE);
-		if(res)
-			return res;
-
-		res = spi_flash_erase_sector(dest_addr/FLASH_SECTOR_SIZE);
-		if(res)
-			return res;
-
-		uint32_t current = dest_addr%FLASH_BLOCK_SIZE;
-		memcpy(spi_buff + current, src_addr, size);
-
-		uint32_t old = ipl_save();
-		Cache_Read_Disable();
-		res =  SPIWrite(_dest_addr, spi_buff, FLASH_SECTOR_SIZE);
-		Cache_Read_Enable(0, 0, 1);
-		ipl_restore(old);
+	SpiFlashOpResult res;
+	res = spi_flash_read(dest_addr, spi_buff, FLASH_SECTOR_SIZE);
+	if(res)
 		return res;
-	}
 
+	res = spi_flash_erase_sector(dest_addr/FLASH_SECTOR_SIZE);
+	if(res)
+		return res;
+
+	uint32_t current = dest_addr%FLASH_SECTOR_SIZE;
+	uint32_t sec_addr = (_dest_addr / FLASH_SECTOR_SIZE) * FLASH_SECTOR_SIZE;
+	memcpy(spi_buff + current, src_addr, size);
+
+	uint32_t old = ipl_save();
+	Cache_Read_Disable();
+	res =  SPIWrite(sec_addr, spi_buff, FLASH_SECTOR_SIZE);
+	Cache_Read_Enable(0, 0, 1);
+	ipl_restore(old);
+
+	return res;
 }
 
 SpiFlashOpResult spi_flash_read(uint32_t src_addr, uint32_t* dest_addr, uint32_t size){
@@ -79,12 +74,20 @@ SpiFlashOpResult spi_flash_read(uint32_t src_addr, uint32_t* dest_addr, uint32_t
 	if(is_oversize(_src_addr, size))
 		return SPI_FLASH_RESULT_OVERSIZE;
 
+	uint32_t sec_addr = (_src_addr / FLASH_SECTOR_SIZE) * FLASH_SECTOR_SIZE;
+
 	uint32_t old = ipl_save();
 	Cache_Read_Disable();
-	SpiFlashOpResult res = SPIRead(_src_addr, dest_addr, size);
+	SpiFlashOpResult res = SPIRead(sec_addr, spi_buff, FLASH_SECTOR_SIZE);
 	Cache_Read_Enable(0, 0, 1);
 	ipl_restore(old);
-	return res;
+	if(res)
+		return res;
+
+	uint32_t current = src_addr % FLASH_SECTOR_SIZE;
+	memcpy(dest_addr, spi_buff + current, size);
+
+	return SPI_FLASH_RESULT_OK;
 }
 
 EMBOX_UNIT_INIT(spi_api_impl_init);
