@@ -9,12 +9,12 @@
 #ifndef DRIVERS_BLOCKDEV_ESP8266_SPI_API_IMPL_H_
 #define DRIVERS_BLOCKDEV_ESP8266_SPI_API_IMPL_H_
 
-#define FLASH_BLOCK_SIZE 	16				// block size (bytes)
-#define FLASH_SECTOR_SIZE   (4*1024)		// sector size 4KBytes (esp8266-documented)
-#define FLASH_MAX_SIZE      (2*1024*1024)	// actually 4MBytes (esp8266-documented)
-#define MIN_SECTOR_NUMBER   16				// reserved for executable code
-
 #include <stdint.h>
+
+#define FLASH_BLOCK_SIZE 	16				// block size (bytes)
+#define FLASH_SECTOR_SIZE   64				// default sector size is 4KBytes
+#define FLASH_MAX_SIZE      (2*1024*1024)	// actually 4MBytes (esp8266-documented)
+#define MIN_SECTOR_NUMBER	1024			// reserved sectors for executable code
 
 typedef struct {
 	uint32_t deviceId;
@@ -23,7 +23,7 @@ typedef struct {
 	uint32_t sector_size;
 	uint32_t page_size;
 	uint32_t status_mask;
-} SpiFlashChip;							// esp8266-documented
+} SpiFlashChip;
 
 typedef enum{
 	SPI_FLASH_RESULT_OK,				// esp8266-documented
@@ -39,6 +39,8 @@ extern void Cache_Read_Enable(uint32_t,uint32_t,uint32_t);
 extern SpiFlashOpResult SPIEraseSector(uint16_t sector);
 extern SpiFlashOpResult SPIWrite(uint32_t dest_addr, uint32_t *src_addr, uint32_t size);
 extern SpiFlashOpResult SPIRead(uint32_t src_addr, uint32_t *dest_addr, uint32_t size);
+/* built-in esp8266 struct */
+extern SpiFlashChip *flashchip;
 
 /* documented esp8266 functions */
 SpiFlashOpResult spi_flash_erase_sector(uint16_t sector);
