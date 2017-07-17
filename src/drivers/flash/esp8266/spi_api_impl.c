@@ -22,7 +22,10 @@ static inline uint8_t is_oversize(uint32_t _addr, uint32_t size){
 	uint32_t sec1 = get_sector_by_addr(_addr);
 	uint32_t sec2 = get_sector_by_addr(_addr + size);
 
-	return sec1 % FLASH_SECTOR_SIZE ? sec1 != sec2 : sec2 - sec1 > 1;
+	//return sec1 % FLASH_SECTOR_SIZE ? sec1 != sec2 : sec2 - sec1 > 1;
+	if(_addr % FLASH_SECTOR_SIZE == 0 || (_addr + size) % FLASH_SECTOR_SIZE == 0)
+		return size > FLASH_SECTOR_SIZE;
+	else return sec1 != sec2;
 }
 
 SpiFlashOpResult spi_flash_erase_sector(uint16_t sector){
