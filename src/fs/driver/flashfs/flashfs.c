@@ -48,6 +48,7 @@ static char flashfs_dev[] = FLASHFS_DEV;
 static int store_node_created(struct node *node);
 static int store_node_removed(struct node *node);
 static int load_node_if_exists(struct nas *parent_nas, int index);
+static int store_file_size_changed(struct node *node);
 static int mount_stored_files(void);
 
 static int flashfs_format(void *dev){
@@ -330,6 +331,7 @@ static size_t flashfs_write(struct file_desc *desc, void *buf, size_t size){
 	}
 
 	desc->cursor = fi->pointer;
+	store_file_size_changed(nas->node);
 	return bytecount;
 }
 
@@ -419,7 +421,6 @@ static int store_node_created(struct node *node){
 	uint32_t offset;
 	uint32_t blks_per_si;
 	struct nas *nas;
-	struct node_info node_info;
 
 	nas = node->nas;
 	fsi = nas->fs->fsi;
@@ -433,7 +434,7 @@ static int store_node_created(struct node *node){
 
 	si.exist = FLAG_EXIST;
 	memcpy(si.name, node->name, NAME_MAX);
-	memcpy(si.node_info, &node_info, sizeof(struct node_info));
+	memset(si.node_info, 0, sizeof(struct node_info));
 
 	char *data = &si;
 
@@ -494,13 +495,23 @@ static int load_node_if_exists(struct nas *parent_nas, int index){
 		return -ENOENT;
 	}
 
-	if (NULL == (node = vfs_subtree_create_child(parent_nas->node, si.name, S_IFREG))){
+	char holder[NAME_MAX + 1];
+	holder[NAME_MAX] = '\0';
+	memcpy(holder, si.name, NAME_MAX);
+
+	if (NULL == (node = vfs_subtree_create_child(parent_nas->node, holder, S_IFREG))){
 		return -ENOMEM;
 	}
 
-	//memcpy(&(node->nas->fi->ni), si.node_info, sizeof(struct node_info));
+	struct node_info ni;
+	memcpy(&ni, si.node_info, sizeof(struct node_info));
+
+	printk("[LOAD] size: %u, mtime: %u\n", ni.size, ni.mtime);
 
 	flashfs_create_no_store(parent_nas->node, node);
+
+	node->nas->fi->ni.size = ni.size;
+	node->nas->fi->ni.mtime = ni.mtime;
 
 	return 0;
 }
@@ -516,6 +527,44 @@ static int mount_stored_files(void){
 	for(int i = 0; i < MAX_FILES_ALLOWED; i++){
 		load_node_if_exists(parent_nas, i);
 	}
+
+	return 0;
+}
+
+static int store_file_size_changed(struct node *node){
+	flashfs_store_info_t si;
+	flashfs_file_info_t *fi;
+	flashfs_fs_info_t *fsi;
+	uint32_t block_size;
+	uint32_t blocks_to_write;
+	uint32_t offset;
+	uint32_t blks_per_si;
+	struct nas *nas;
+
+	nas = node->nas;
+	fsi = nas->fs->fsi;
+	fi = nas->fi->privdata;
+
+	block_size = fsi->block_size;
+	blocks_to_write = sizeof(flashfs_store_info_t)/block_size;
+
+	blks_per_si = (MAX_FILE_SIZE/MAX_FILES_ALLOWED + block_size - 1)/block_size;
+	offset = fsi->block_per_file * MAX_FILES_ALLOWED + fi->index*blks_per_si;
+
+	flashfs_read_sector(nas, &si, 4, offset);
+
+	struct node_info nfi;
+	memcpy(&nfi, si.node_info, sizeof(struct node_fi));
+
+	printk("[SC] exist: 0x%X, name: %s, size: %u, mtime: %u\n", si.exist, si.name, nfi.size, nfi.mtime);
+
+	struct node_info ni = node->nas->fi->ni;
+	memcpy(si.node_info, &ni, sizeof(struct node_info));
+
+	char *data = &si;
+	printk("[SC] new size: %u, mtime: %u\n", *(data+36), *(data+40));
+
+	flashfs_write_sector(nas, data+32, 1, offset + 2);
 
 	return 0;
 }
