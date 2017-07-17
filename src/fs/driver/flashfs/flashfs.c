@@ -437,10 +437,8 @@ static int store_node_created(struct node *node){
 
 	char *data = &si;
 
-	printk("[STORE] test: 0x%X, %s\n", ((flashfs_store_info_t*)data)->exist, ((flashfs_store_info_t*)data)->name);
-
-	int res = flashfs_write_sector(nas, data, 1, offset);
-	printk("[STORE] res: %d\n", res);
+	for(int i = blocks_to_write - 1; i >= 0; i--)
+		flashfs_write_sector(nas, data + block_size * i, 1, offset + i);
 
 	return 0;
 }
