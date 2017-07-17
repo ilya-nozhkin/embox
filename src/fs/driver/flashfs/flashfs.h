@@ -26,10 +26,12 @@ typedef struct flashfs_file_info {
 	uint32_t pointer;			/* current (BYTE) pointer */
 } flashfs_file_info_t;
 
+// size of this struct must be divisible by block_size
 typedef struct flashfs_store_info {
 	uint32_t 	exist;			/* helps find out if this is garbage */
 	char		name[NAME_MAX]; /* name itself */
-	char 		ph[28];			/* placeholder */
+	char		node_info[8];	/* store node_info structure */
+	char 		ph[20];			/* placeholder */
 } flashfs_store_info_t;
 
 #endif /* FS_DRIVER_FLASHFS_H_ */
