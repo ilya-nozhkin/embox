@@ -216,9 +216,6 @@ static size_t flashfs_read(struct file_desc *desc, void *buf, size_t size){
 
 	size_t counter = 0;
 
-	printk("[READ] Addr: 0x%X, size: %d ni.size: %d, cursor: %d\n",
-		start_block*fsi->block_size, size, nas->fi->ni.size, desc->cursor);
-
 	while (pbuf < ebuf) {
 		blkno_t blk = desc->cursor / fsi->block_size;
 		int offset = desc->cursor % fsi->block_size;
@@ -268,8 +265,6 @@ static size_t flashfs_write(struct file_desc *desc, void *buf, size_t size){
 	len = size;
 	end_pointer = fi->pointer + len;
 	start_block = fi->index * fsi->block_per_file;
-
-	printk("[WRITE] Addr: 0x%X, buff: %s\n", start_block*fsi->block_size, buf);
 
 	while(1) {
 		if(0 == fsi->block_size) {
@@ -438,8 +433,9 @@ static int store_node_created(struct node *node){
 
 	char *data = &si;
 
-	for(int i = blocks_to_write - 1; i >= 0; i--)
-		flashfs_write_sector(nas, data + block_size * i, 1, offset + i);
+	printk("[CREATE] offset: %u\n", offset);
+	for(int i = 0; i < blocks_to_write; i++)
+		flashfs_write_sector(nas, data + i*block_size, 1, offset + i);
 
 	return 0;
 }
@@ -461,8 +457,6 @@ static int store_node_removed(struct node *node){
 	blks_per_si = (MAX_FILE_SIZE/MAX_FILES_ALLOWED + block_size - 1)/block_size;
 	offset = fsi->block_per_file * MAX_FILES_ALLOWED + fi->index*blks_per_si;
 
-	printk("[REMOVE] Offset: %u, index: %u\n", offset, fi->index);
-
 	flashfs_write_sector(nas, (char *)&exist, 1, offset);
 
 	return 0;
@@ -475,6 +469,7 @@ static int load_node_if_exists(struct nas *parent_nas, int index){
 	uint32_t offset;
 	uint32_t blks_per_si;
 	uint32_t block_size;
+	uint32_t blocks_to_read;
 	struct nas *nas = parent_nas;
 	struct node *node;
 
@@ -482,12 +477,15 @@ static int load_node_if_exists(struct nas *parent_nas, int index){
 	fi = nas->fi->privdata;
 	block_size = fsi->block_size;
 
+	blocks_to_read = sizeof(flashfs_store_info_t)/block_size;
 	blks_per_si = (MAX_FILE_SIZE/MAX_FILES_ALLOWED + block_size - 1)/block_size;
 	offset = fsi->block_per_file * MAX_FILES_ALLOWED + index*blks_per_si;
 
 	uint32_t size = sizeof(flashfs_store_info_t)/block_size;
 
-	flashfs_read_sector(nas, (char *)&si, size, offset);
+	char *data = &si;
+	for(int i = 0; i < blocks_to_read; i++)
+		flashfs_read_sector(nas, data + i*block_size, 1, offset + i);
 
 	if(si.exist == FLAG_EXIST){
 		printk("Exist: 0x%X name: %s\n", si.exist, si.name);
@@ -556,13 +554,10 @@ static int store_file_size_changed(struct node *node){
 	struct node_info nfi;
 	memcpy(&nfi, si.node_info, sizeof(struct node_fi));
 
-	printk("[SC] exist: 0x%X, name: %s, size: %u, mtime: %u\n", si.exist, si.name, nfi.size, nfi.mtime);
-
 	struct node_info ni = node->nas->fi->ni;
 	memcpy(si.node_info, &ni, sizeof(struct node_info));
 
 	char *data = &si;
-	printk("[SC] new size: %u, mtime: %u\n", *(data+36), *(data+40));
 
 	flashfs_write_sector(nas, data+32, 1, offset + 2);
 
