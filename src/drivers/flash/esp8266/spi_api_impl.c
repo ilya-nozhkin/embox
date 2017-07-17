@@ -35,16 +35,15 @@ SpiFlashOpResult spi_flash_erase_sector(uint16_t sector){
 }
 
 SpiFlashOpResult spi_flash_write(uint32_t dest_addr, uint32_t *src_addr, uint32_t size){
-	uint32_t _dest_addr = dest_addr + MIN_SECTOR_NUMBER*FLASH_SECTOR_SIZE;
-
 	if(!src_addr || !size)
 		return SPI_FLASH_RESULT_ERR;
 
-	if(is_oversize(_dest_addr, size))
+	if(is_oversize(dest_addr, size))
 		return SPI_FLASH_RESULT_OVERSIZE;
 
+	uint32_t sec_addr = (dest_addr / FLASH_SECTOR_SIZE) * FLASH_SECTOR_SIZE;
 	SpiFlashOpResult res;
-	res = spi_flash_read(dest_addr, spi_buff, FLASH_SECTOR_SIZE);
+	res = spi_flash_read(sec_addr, spi_buff, FLASH_SECTOR_SIZE);
 	if(res)
 		return res;
 
@@ -53,12 +52,11 @@ SpiFlashOpResult spi_flash_write(uint32_t dest_addr, uint32_t *src_addr, uint32_
 		return res;
 
 	uint32_t current = dest_addr%FLASH_SECTOR_SIZE;
-	uint32_t sec_addr = (_dest_addr / FLASH_SECTOR_SIZE) * FLASH_SECTOR_SIZE;
 	memcpy(spi_buff + current, src_addr, size);
 
 	uint32_t old = ipl_save();
 	Cache_Read_Disable();
-	res =  SPIWrite(sec_addr, spi_buff, FLASH_SECTOR_SIZE);
+	res =  SPIWrite(sec_addr + MIN_SECTOR_NUMBER*FLASH_SECTOR_SIZE, spi_buff, FLASH_SECTOR_SIZE);
 	Cache_Read_Enable(0, 0, 1);
 	ipl_restore(old);
 
