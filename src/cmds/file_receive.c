@@ -3,7 +3,8 @@
 #include <unistd.h>
 #include <string.h>
 
-static char buffer[16];
+#define BUFFER_SIZE 64
+static char buffer[BUFFER_SIZE];
 
 int main(int argc, char **argv) {
 	int size = atoi(argv[1]);
@@ -18,8 +19,8 @@ int main(int argc, char **argv) {
 		data = diag_getc();
 		buffer[counter++] = data;
 
-		if(counter == 16){
-			fwrite(buffer, 16, 1, f);
+		if(counter == BUFFER_SIZE){
+			fwrite(buffer, BUFFER_SIZE, 1, f);
 			counter = 0;
 		}
 	}
