@@ -11,8 +11,8 @@
 #include <pthread.h>
 
 #define MAXREPRTAB   2000
-#define MAXIDENTAB   1000
-#define MAXMEMSIZE   2000
+#define MAXIDENTAB   300
+#define MAXMEMSIZE   500
 #define MAXTREESIZE  1000
 #define MAXMODETAB   1500
 #define MAXBOUNDS    100

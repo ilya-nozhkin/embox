@@ -7,8 +7,8 @@ static char buffer[16];
 
 int main(int argc, char **argv) {
 	int size = atoi(argv[1]);
-	char filename[8] = "/flash/\0";
-	strcat(&filename, argv[2]);
+	char filename[64] = "/flash/";
+	strcat(filename, argv[2]);
 	FILE *f = fopen(filename, "w");
 	char data;
 	int counter = 0;
