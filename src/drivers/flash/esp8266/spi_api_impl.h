@@ -12,9 +12,9 @@
 #include <stdint.h>
 
 #define FLASH_BLOCK_SIZE 	16				// block size (bytes)
-#define FLASH_SECTOR_SIZE   64				// default sector size is 4KBytes
+#define FLASH_SECTOR_SIZE   (4*1024)				// default sector size is 4KBytes
 #define FLASH_MAX_SIZE      (2*1024*1024)	// actually 4MBytes (esp8266-documented)
-#define MIN_SECTOR_NUMBER	1024			// reserved sectors for executable code
+#define MIN_SECTOR_NUMBER	16			// reserved sectors for executable code
 
 typedef struct {
 	uint32_t deviceId;
