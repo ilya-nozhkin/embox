@@ -233,6 +233,7 @@ static size_t flashfs_read(struct file_desc *desc, void *buf, size_t size){
 		}
 
 		read_n = min(fsi->block_size - offset, ebuf - pbuf);
+
 		memcpy (pbuf, sector_buff + offset, read_n);
 
 		desc->cursor += read_n;
