@@ -13,17 +13,12 @@
 extern int ruc_import();
 
 int main(int argc, char **argv) {
-
-	char dir[] = "/flash/";
-	char *path = malloc(strlen(argv[1]) + 1 + 7);
-
-	memcpy(path, dir, 7);
-	memcpy(path+7, argv[1], strlen(argv[1]) + 1);
-
-	ruc_import(path);
+	servo_init(4, 5, 12, 13);
+	set_analog_sensor(0, 1);
+	
+	ruc_import(argv[1]);
 
 	fflush(stdout);
-	free(path);
   
 	return 0;
 }

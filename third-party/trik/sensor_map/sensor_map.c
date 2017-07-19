@@ -14,7 +14,7 @@ struct digital_sensor {
 struct digital_sensor digital_sensors[8] = {0};
 uint32_t analog_sensors[8] = {0};
 
-struct l298p *servo_driver;
+struct l298p *servo_driver = 0;
 
 void set_digital_sensor(uint8_t id, uint32_t type, uint8_t pin0, uint8_t pin1) {
 	digital_sensors[id].type = type;

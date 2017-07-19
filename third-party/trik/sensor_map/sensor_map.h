@@ -8,6 +8,8 @@
 
 #define ANALOG_SENSOR_SHARP_2Y0A21 1
 
+void clear_sensor_map(void);
+
 void set_digital_sensor(uint8_t id, uint32_t type, uint8_t pin0, uint8_t pin1);
 void set_analog_sensor(uint8_t id, uint32_t type);
 

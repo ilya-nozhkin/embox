@@ -35,7 +35,7 @@
 #ifdef __MODULE__embox__fs__core__H_
 static int mkfs_do_operation(size_t blocks, char *path, const char *fs_name,
 		unsigned int fs_type, unsigned int operation_flag, char *fs_specific) {
-	//int rezult;
+	int rezult;
 
 	if (operation_flag & MKFS_CREATE_RAMDISK) {
 		if (0 == (err(ramdisk_create(path, blocks * PAGE_SIZE())))) {
@@ -44,9 +44,9 @@ static int mkfs_do_operation(size_t blocks, char *path, const char *fs_name,
 	}
 
 	if (operation_flag & MKFS_FORMAT_DEV) {
-		/* if (0 != (rezult = kformat(path, fs_name))) {
+		 if (0 != (rezult = kformat(path, fs_name))) {
 			return rezult;
-		} */
+		} 
 	}
 	return 0;
 }

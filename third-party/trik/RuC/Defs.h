@@ -10,15 +10,10 @@
 #define RuC_Defs_h
 #include <pthread.h>
 
-<<<<<<< HEAD
+
 #define MAXREPRTAB   2000
 #define MAXIDENTAB   300
 #define MAXMEMSIZE   500
-=======
-#define MAXREPRTAB   1000
-#define MAXIDENTAB   1000
-#define MAXMEMSIZE   1000
->>>>>>> xtensa-esp8266-filesystem
 #define MAXTREESIZE  1000
 #define MAXMODETAB   1500
 #define MAXBOUNDS    100
