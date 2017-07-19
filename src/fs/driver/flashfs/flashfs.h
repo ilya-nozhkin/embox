@@ -32,6 +32,7 @@ typedef struct flashfs_store_info {
 	char		name[NAME_MAX]; /* name itself */
 	char		node_info[8];	/* store node_info structure */
 	char 		ph[20];			/* placeholder */
+	char		ph2[256-64];
 } flashfs_store_info_t;
 
 #endif /* FS_DRIVER_FLASHFS_H_ */

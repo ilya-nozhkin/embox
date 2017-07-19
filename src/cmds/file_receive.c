@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 256
 static char buffer[BUFFER_SIZE];
 
 int main(int argc, char **argv) {
