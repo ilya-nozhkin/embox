@@ -38,21 +38,29 @@ SpiFlashOpResult spi_flash_erase_sector(uint16_t sector){
 }
 
 SpiFlashOpResult spi_flash_write(uint32_t dest_addr, uint32_t *src_addr, uint32_t size){
-	if(!src_addr || !size)
+	if(!src_addr || !size){
+		printk("[spi_flash_write] addr: 0x%X, size: %d\n", src_addr, size);
 		return SPI_FLASH_RESULT_ERR;
+	}
 
-	if(is_oversize(dest_addr, size))
+	if(is_oversize(dest_addr, size)){
+		printk("[spi_flash_write] oversize");
 		return SPI_FLASH_RESULT_OVERSIZE;
+	}
 
 	uint32_t sec_addr = (dest_addr / FLASH_SECTOR_SIZE) * FLASH_SECTOR_SIZE;
 	SpiFlashOpResult res;
 	res = spi_flash_read(sec_addr, spi_buff, FLASH_SECTOR_SIZE);
-	if(res)
+	if(res){
+		printk("[spi_flash_write] read error");
 		return res;
+	}
 
 	res = spi_flash_erase_sector(dest_addr/FLASH_SECTOR_SIZE);
-	if(res)
+	if(res){
+		printk("[spi_flash_write] erase error");
 		return res;
+	}
 
 	uint32_t current = dest_addr%FLASH_SECTOR_SIZE;
 	memcpy(spi_buff + current, src_addr, size);
