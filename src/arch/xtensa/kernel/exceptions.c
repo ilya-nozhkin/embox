@@ -71,22 +71,6 @@ static void level_1_interrupt_handler(struct context *ctx) {
 	critical_dispatch_pending();
 }
 
-static void print_stack(uint32_t start, uint32_t end) {
- 	uint32_t pos = 0;
- 	printk("\nStack dump:\n");
- 	printk("================================================================\n");
- 	for (pos = start; pos < end; pos += 0x10) {
- 		uint32_t* values = (uint32_t*)(pos);
- 		// rough indicator: stack frames usually have SP saved as the second word
- 		unsigned int looksLikeStackFrame = (values[2] == pos + 0x10);
-
- 		printk("%08lx:  %08lx %08lx %08lx %08lx %c\n",
- 		pos, values[0], values[1], values[2], values[3], (looksLikeStackFrame)?'<':' ');
- 	}
- 	printk("\n");
- 	printk("================================================================\n");
- }
-
 static void print_context(struct context *ctx) {
 	uint32_t epc2 = 0;
 	uint32_t epc3 = 0;
@@ -108,11 +92,6 @@ static void print_context(struct context *ctx) {
 	printk("\nepc1 = 0x%08X\tepc2 = 0x%08X\nepc3 = 0x%08X\tdepc = 0x%08X\n", ctx->epc1, epc2, epc3, depc);
 	printk("\nps = 0x%08X\tsar = 0x%08X\n", ctx->ps, ctx->sar);
 	printk("\nexccause = 0x%X = %d\n", exccause, exccause);
-
-    uint32_t *stack;
-    asm volatile ("mov %0, a1" : "=r"(stack));
-
-    print_stack(stack, 0x3fffffb0);
 }
 
 static void unknown_exception_handler(struct context *ctx) {
