@@ -5,7 +5,7 @@ module flashfs {
 	source "flashfs.h"
 
 	source "flashfs.c"
-	option number inode_quantity=32 //16
+	option number inode_quantity=9 //16
 	option number flashfs_descriptor_quantity=4
 	option number flashfs_file_size=16384 //65536
 

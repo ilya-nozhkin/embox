@@ -122,9 +122,9 @@ static int read_blocks(struct block_dev *bdev,
 	size_t block_size = bdev->block_size;
 	size_t read_addr = (flashdisk->begin_block + blkno) * block_size;
 
-	spi_flash_read(read_addr, buffer, count);
+	int res = spi_flash_read(read_addr, buffer, count);
 
-	return count;
+	return res ? -1 : count;
 }
 
 static int write_blocks(struct block_dev *bdev,
@@ -133,9 +133,9 @@ static int write_blocks(struct block_dev *bdev,
 	size_t block_size = bdev->block_size;
 	size_t write_addr = (flashdisk->begin_block + blkno) * block_size;
 
-	spi_flash_write(write_addr, buffer, count);
+	int res = spi_flash_write(write_addr, buffer, count);
 
-	return count;
+	return res ? -1 : count;
 }
 
 static int flash_ioctl(struct block_dev *bdev, int cmd, void *args, size_t size) {
