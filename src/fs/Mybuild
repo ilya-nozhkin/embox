@@ -128,7 +128,7 @@ module journal {
 
 module buffer_cache {
 	source "bcache.c"
-	option number bcache_size=128
+	option number bcache_size=16
 
 	depends embox.compat.libc.all
 	depends embox.mem.pool
