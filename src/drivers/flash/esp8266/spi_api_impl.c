@@ -11,13 +11,7 @@
 #include <hal/ipl.h>
 #include <embox/unit.h>
 
-<<<<<<< HEAD
-#include <hal/ipl.h>
-
-static char buffer[FLASH_BLOCK_SIZE];
-=======
 static char spi_buff[FLASH_SECTOR_SIZE];
->>>>>>> xtensa-esp8266-filesystem
 
 // Let's make 'addr' is for converted addr, '_addr' is for not
 static inline uint32_t get_sector_by_addr(uint32_t _addr){
@@ -43,30 +37,6 @@ SpiFlashOpResult spi_flash_erase_sector(uint16_t sector){
 	return res;
 }
 
-<<<<<<< HEAD
-SpiFlashOpResult spi_flash_write(uint32_t dest_addr, uint32_t *src_addr, uint32_t size) {
-	ipl_t level = ipl_save();
-	uint32_t _dest_addr = dest_addr + MIN_SECTOR_NUMBER*FLASH_SECTOR_SIZE;
-
-	if(!src_addr)
-		return SPI_FLASH_RESULT_ERR;
-
-	/* We should align it like 0x...000 */
-	if(size & 3){
-		// We don't need align it right there (at this moment :p)
-		return SPI_FLASH_RESULT_UNALIGNED_ADDR;
-	} else {
-		if(is_oversize(_dest_addr, size))
-			return SPI_FLASH_RESULT_OVERSIZE;
-
-		Cache_Read_Disable();
-		SpiFlashOpResult res =  SPIWrite(_dest_addr, src_addr, size);
-		Wait_SPI_Idle(flashchip);
-		Cache_Read_Enable(0,0,1);
-		return res;
-	}
-	ipl_restore(level);
-=======
 SpiFlashOpResult spi_flash_write(uint32_t dest_addr, uint32_t *src_addr, uint32_t size){
 	if(!src_addr || !size){
 		printk("[spi_flash_write] addr: 0x%X, size: %d\n", src_addr, size);
@@ -102,7 +72,6 @@ SpiFlashOpResult spi_flash_write(uint32_t dest_addr, uint32_t *src_addr, uint32_
 	ipl_restore(old);
 
 	return res;
->>>>>>> xtensa-esp8266-filesystem
 }
 
 SpiFlashOpResult spi_flash_read(uint32_t src_addr, uint32_t* dest_addr, uint32_t size){

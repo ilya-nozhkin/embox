@@ -12,8 +12,8 @@
 
 
 #define MAXREPRTAB   2000
-#define MAXIDENTAB   300
-#define MAXMEMSIZE   500
+#define MAXIDENTAB   500
+#define MAXMEMSIZE   1000
 #define MAXTREESIZE  1000
 #define MAXMODETAB   1500
 #define MAXBOUNDS    100
