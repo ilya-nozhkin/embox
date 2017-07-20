@@ -8,10 +8,10 @@
 
 #include "spi_api_impl.h"
 
+#include <hal/ipl.h>
 #include <embox/unit.h>
-#include <kernel/printk.h>
 
-static char buffer[FLASH_BLOCK_SIZE];
+static char spi_buff[FLASH_SECTOR_SIZE];
 
 // Let's make 'addr' is for converted addr, '_addr' is for not
 static inline uint32_t get_sector_by_addr(uint32_t _addr){
@@ -19,33 +19,59 @@ static inline uint32_t get_sector_by_addr(uint32_t _addr){
 }
 
 static inline uint8_t is_oversize(uint32_t _addr, uint32_t size){
-	return get_sector_by_addr(_addr) != get_sector_by_addr(_addr + size);
+	uint32_t sec1 = get_sector_by_addr(_addr);
+	uint32_t sec2 = get_sector_by_addr(_addr + size);
+
+	//return sec1 % FLASH_SECTOR_SIZE ? sec1 != sec2 : sec2 - sec1 > 1;
+	if(_addr % FLASH_SECTOR_SIZE == 0 || (_addr + size) % FLASH_SECTOR_SIZE == 0)
+		return size > FLASH_SECTOR_SIZE;
+	else return sec1 != sec2;
 }
 
 SpiFlashOpResult spi_flash_erase_sector(uint16_t sector){
-	return SPI_FLASH_RESULT_ERR;
+	uint32_t old = ipl_save();
+	Cache_Read_Disable();
+	SpiFlashOpResult res = SPIEraseSector(sector + MIN_SECTOR_NUMBER);
+	Cache_Read_Enable(0, 0, 1);
+	ipl_restore(old);
+	return res;
 }
 
 SpiFlashOpResult spi_flash_write(uint32_t dest_addr, uint32_t *src_addr, uint32_t size){
-	uint32_t _dest_addr = dest_addr + MIN_SECTOR_NUMBER*FLASH_SECTOR_SIZE;
-
-	if(!src_addr)
+	if(!src_addr || !size){
+		printk("[spi_flash_write] addr: 0x%X, size: %d\n", src_addr, size);
 		return SPI_FLASH_RESULT_ERR;
+	}
 
-	/* We should align it like 0x...000 */
-	if(size & 3){
-		// We don't need align it right there (at this moment :p)
-		return SPI_FLASH_RESULT_UNALIGNED_ADDR;
-	} else {
-		if(is_oversize(_dest_addr, size))
-			return SPI_FLASH_RESULT_OVERSIZE;
+	if(is_oversize(dest_addr, size)){
+		printk("[spi_flash_write] oversize");
+		return SPI_FLASH_RESULT_OVERSIZE;
+	}
 
-		Cache_Read_Disable();
-		SpiFlashOpResult res =  SPIWrite(_dest_addr, src_addr, size);
-		Cache_Read_Enable(0,0,1);
+	uint32_t sec_addr = (dest_addr / FLASH_SECTOR_SIZE) * FLASH_SECTOR_SIZE;
+	SpiFlashOpResult res;
+	res = spi_flash_read(sec_addr, spi_buff, FLASH_SECTOR_SIZE);
+	if(res){
+		printk("[spi_flash_write] read error");
 		return res;
 	}
 
+	res = spi_flash_erase_sector(dest_addr/FLASH_SECTOR_SIZE);
+	if(res){
+		printk("[spi_flash_write] erase error");
+		return res;
+	}
+
+	uint32_t current = dest_addr%FLASH_SECTOR_SIZE;
+	memcpy(spi_buff + current, src_addr, size);
+
+	uint32_t old = ipl_save();
+	Cache_Read_Disable();
+	res =  SPIWrite(sec_addr + MIN_SECTOR_NUMBER*FLASH_SECTOR_SIZE, spi_buff, FLASH_SECTOR_SIZE);
+	Cache_Read_Enable(0, 0, 1);
+	ipl_restore(old);
+
+	return res;
 }
 
 SpiFlashOpResult spi_flash_read(uint32_t src_addr, uint32_t* dest_addr, uint32_t size){
@@ -57,53 +83,24 @@ SpiFlashOpResult spi_flash_read(uint32_t src_addr, uint32_t* dest_addr, uint32_t
 	if(is_oversize(_src_addr, size))
 		return SPI_FLASH_RESULT_OVERSIZE;
 
+	uint32_t sec_addr = (_src_addr / FLASH_SECTOR_SIZE) * FLASH_SECTOR_SIZE;
+
+	uint32_t old = ipl_save();
 	Cache_Read_Disable();
-	SpiFlashOpResult res = SPIRead(_src_addr, dest_addr, size);
-	Cache_Read_Enable(0,0,1);
-	return res;
+	SpiFlashOpResult res = SPIRead(sec_addr, spi_buff, FLASH_SECTOR_SIZE);
+	Cache_Read_Enable(0, 0, 1);
+	ipl_restore(old);
+	if(res)
+		return res;
+
+	uint32_t current = src_addr % FLASH_SECTOR_SIZE;
+	memcpy(dest_addr, spi_buff + current, size);
+
+	return SPI_FLASH_RESULT_OK;
 }
 
-EMBOX_UNIT_INIT(esp8266_spi_setup);
-static int esp8266_spi_setup(void){
-
-	printk("deviceId: %u\nchip_size: %u\nblock_size: %u\nsector_size: %u\npage_size: %u\nstatus_mask: %u\n",
-		flashchip->deviceId,
-		flashchip->chip_size,
-		flashchip->block_size,
-		flashchip->sector_size,
-		flashchip->page_size,
-		flashchip->status_mask);
-
-	spi_write_enable(flashchip);
+EMBOX_UNIT_INIT(spi_api_impl_init);
+static int spi_api_impl_init(void){
+	flashchip->sector_size = FLASH_SECTOR_SIZE;
 	return 0;
-}
-
-SpiFlashOpResult spi_read_status(SpiFlashChip *flashchip, uint32_t *status){
-	uint32_t result;
-	do{
-		SPI0_RD_STATUS = status;
-		SPI0_CMD = SPI_READ;
-		while(SPI0_CMD);
-		result = SPI0_RD_STATUS & flashchip->status_mask;
-	} while(result & BIT(0));
-	*status = result;
-	return SPI_FLASH_RESULT_OK;
-}
-
-SpiFlashOpResult wait_spi_idle(SpiFlashChip *flashchip){
-	uint32_t status = 0; // ??
-	while(DPORT_BASE[3] & BIT(9));
-	return spi_read_status(flashchip, &status);
-}
-
-SpiFlashOpResult spi_write_enable(SpiFlashChip *flashchip){
-	uint32_t status = 0;
-	wait_spi_idle(flashchip);
-	return SPI_FLASH_RESULT_ERR;
-	SPI0_CMD = SPI_WREN;
-	while(SPI0_CMD);
-	while(status & BIT(1) == 0)
-		spi_read_status(flashchip, &status);
-
-	return SPI_FLASH_RESULT_OK;
 }

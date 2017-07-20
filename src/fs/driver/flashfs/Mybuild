@@ -5,9 +5,9 @@ module flashfs {
 	source "flashfs.h"
 
 	source "flashfs.c"
-	option number inode_quantity=16
+	option number inode_quantity=8 //16
 	option number flashfs_descriptor_quantity=4
-	option number flashfs_file_size=65536
+	option number flashfs_file_size=16384 //65536
 
 	//info: (inode_quantity * flashfs_file_size) should be equals to (FLASH_MAX_SIZE / flashdisk_quantity) = SIZE_PER_DRIVER
 

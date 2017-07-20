@@ -10,9 +10,9 @@
 #define RuC_Defs_h
 #include <pthread.h>
 
-#define MAXREPRTAB   2000
-#define MAXIDENTAB   500
-#define MAXMEMSIZE   1100
+#define MAXREPRTAB   1000
+#define MAXIDENTAB   1000
+#define MAXMEMSIZE   1000
 #define MAXTREESIZE  1000
 #define MAXMODETAB   1000
 #define MAXBOUNDS    100
