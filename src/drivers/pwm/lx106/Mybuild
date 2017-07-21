@@ -1,10 +1,7 @@
 package embox.driver.pwm.lx106
 
-module pwm {
+module pwm extends embox.driver.pwm.api {
 	source "pwm.c"
-
-	@IncludeExport(path="drivers/pwm/lx106")
-	source "pwm.h"
 
     depends embox.driver.interrupt.irqctrl_api
     depends embox.driver.gpio.esp8266
