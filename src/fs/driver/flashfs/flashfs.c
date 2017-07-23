@@ -445,7 +445,6 @@ static int store_node_removed(struct node *node){
 	uint32_t blks_per_si;
 	uint32_t block_size;
 	struct nas *nas;
-	char exist[16] = {0}; // should be allocated dynamicly with size = block_size
 
 	nas = node->nas;
 	fsi = nas->fs->fsi;
@@ -455,7 +454,8 @@ static int store_node_removed(struct node *node){
 	blks_per_si = (MAX_FILE_SIZE/MAX_FILES_ALLOWED + block_size - 1)/block_size;
 	offset = fsi->block_per_file * MAX_FILES_ALLOWED + fi->index*blks_per_si;
 
-	flashfs_write_sector(nas, (char *)&exist, 1, offset);
+	memset(sector_buff, 0, sizeof(sector_buff));
+	flashfs_write_sector(nas, sector_buff, sizeof(sector_buff)/block_size, offset);
 
 	return 0;
 }
@@ -486,7 +486,7 @@ static int load_node_if_exists(struct nas *parent_nas, int index){
 		flashfs_read_sector(nas, data + i*block_size, 1, offset + i);
 
 	if(si.exist == FLAG_EXIST){
-		//printk("Exist: 0x%X name: %s\n", si.exist, si.name);
+//		printk("Exist: 0x%X name: %s\n", si.exist, si.name);
 	} else {
 		return -ENOENT;
 	}
@@ -502,10 +502,21 @@ static int load_node_if_exists(struct nas *parent_nas, int index){
 	struct node_info ni;
 	memcpy(&ni, si.node_info, sizeof(struct node_info));
 
-	flashfs_create_no_store(parent_nas->node, node);
-
 	node->nas->fi->ni.size = ni.size;
 	node->nas->fi->ni.mtime = ni.mtime;
+
+	flashfs_create_no_store(parent_nas->node, node);
+
+	flashfs_file_info_t *info = node->nas->fi->privdata;
+	int actual = info->index;
+	if(actual != index){
+		store_node_created(node);
+
+		info->index = index;
+		store_node_removed(node);
+
+		info->index = actual;
+	}
 
 	return 0;
 }
