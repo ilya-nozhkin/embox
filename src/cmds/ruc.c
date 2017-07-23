@@ -1,3 +1,4 @@
+
 /**
  * @file
  * @brief
@@ -13,12 +14,8 @@
 extern int ruc_import();
 
 int main(int argc, char **argv) {
-	servo_init(4, 5, 12, 13);
-	set_analog_sensor(0, 1);
-	
+	sensor_map_from_file(argv[2]);
 	ruc_import(argv[1]);
-
 	fflush(stdout);
-  
 	return 0;
 }

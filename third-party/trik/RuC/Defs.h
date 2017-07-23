@@ -15,7 +15,7 @@
 #define MAXIDENTAB   500
 #define MAXMEMSIZE   1000
 #define MAXTREESIZE  1000
-#define MAXMODETAB   1500
+#define MAXMODETAB   1000
 #define MAXBOUNDS    100
 #define FUNCSIZE     100
 #define SOURCESIZE   10000

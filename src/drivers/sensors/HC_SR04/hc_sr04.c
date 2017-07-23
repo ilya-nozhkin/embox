@@ -4,11 +4,7 @@
 #include <hal/system.h>
 #include <unistd.h>
 #include <drivers/gpio.h>
-
-
-
-static struct gpio* trig;
-static struct gpio* echo;
+#include <stdlib.h>
 
 static inline uint32_t timestamp(void){
     uint32_t ccount;
@@ -16,14 +12,12 @@ static inline uint32_t timestamp(void){
     return ccount / (SYS_CLOCK / 1000000);
 }
 
-
-
-static inline uint32_t wait_level_change(gpio_mask_t current_level){
+static inline uint32_t wait_level_change(struct gpio *echo){
 	uint32_t time_start = timestamp();
 	uint32_t timer = 0;
 	while(1){
 		gpio_mask_t level = gpio_get_level(echo, 0);
-		if(level != current_level){
+		if(level != 1){
 			return timestamp() - time_start;
 		}
 		if (timer >= 100000){
@@ -37,28 +31,36 @@ static inline uint32_t wait_level_change(gpio_mask_t current_level){
 
 }
 
-void hc_sr04_setup(uint8_t trig_pin, uint8_t echo_pin){
-	trig = gpio_by_num(trig_pin);
-	echo = gpio_by_num(echo_pin);
+struct dht11 *hc_sr04_setup(uint8_t trig_pin, uint8_t echo_pin){
+	struct gpio *trig = gpio_by_num(trig_pin);
+	struct gpio *echo = gpio_by_num(echo_pin);
+	struct hc_sr04 *sensor = malloc(sizeof(struct hc_sr04));
+	sensor->trig = trig;
+	sensor->echo = echo;
 	gpio_settings(trig, 0, GPIO_MODE_OUTPUT);
 	gpio_set_level(trig, 0, 0);
 	gpio_settings(echo, 0, GPIO_MODE_INPUT);
+	return sensor;
 }
 
-void hc_sr04_request(void){
+void hc_sr04_finish(struct hc_sr04 *sensor) {
+	gpio_settings(sensor->trig, 0, GPIO_MODE_INPUT);
+	gpio_settings(sensor->echo, 0, GPIO_MODE_INPUT);
+	free(sensor);
+}
+
+uint32_t hc_sr04_response(struct hc_sr04 *sensor){
+	struct gpio *trig = sensor->trig;
+	struct gpio *echo = sensor->echo;
 	gpio_set_level(trig, 0, 1);
 	usleep(12);
 	gpio_set_level(trig, 0, 0);
-
-}
-
-uint32_t hc_sr04_response(void){
 	uint32_t response_time;
 	uint32_t timer = 0;
 	while (1){
 		gpio_mask_t level = gpio_get_level(echo, 0);
 		if(level == 1){
-			response_time = wait_level_change(1); // response in centimeters
+			response_time = wait_level_change(echo); // response in centimeters
 
 			if (response_time == 38 * 1000){
 				return 0; // no obstacles
@@ -72,7 +74,6 @@ uint32_t hc_sr04_response(void){
 		else{
 			timer++;
 		}
-
 
 	}
 }
