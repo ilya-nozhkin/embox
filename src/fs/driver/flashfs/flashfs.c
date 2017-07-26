@@ -502,10 +502,10 @@ static int load_node_if_exists(struct nas *parent_nas, int index){
 	struct node_info ni;
 	memcpy(&ni, si.node_info, sizeof(struct node_info));
 
+	flashfs_create_no_store(parent_nas->node, node);
+
 	node->nas->fi->ni.size = ni.size;
 	node->nas->fi->ni.mtime = ni.mtime;
-
-	flashfs_create_no_store(parent_nas->node, node);
 
 	flashfs_file_info_t *info = node->nas->fi->privdata;
 	int actual = info->index;
