@@ -3,7 +3,7 @@ package embox.driver.pwm
 abstract module api {
 	source "pwm.c"
 
-	@IncludeExport(path="drivers/pwm")
+	@IncludeExport(path="drivers")
 	source "pwm.h"
 
     depends embox.driver.gpio.api
