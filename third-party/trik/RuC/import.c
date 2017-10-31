@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <sensor_map.h>
 #include <stdlib.h>
 
 #include "th_static.h"
@@ -1488,7 +1489,7 @@ void* interpreter(void* pcPnt)
     return NULL;
 }
 
-void ruc_import()
+void ruc_import(const char *filename)
 {
     int i, l, pc, x;
     
@@ -1502,7 +1503,7 @@ void ruc_import()
     system("i2cset -y 2 0x48 0x13 0x1000 w");
 #endif
     
-    input = fopen("export.txt", "r");
+    input = fopen(filename, "r");
     
     fscanf(input, "%i %i %i %i %i %i %i\n", &pc, &funcnum, &id, &rp, &md, &maxdisplg, &wasmain);
 
